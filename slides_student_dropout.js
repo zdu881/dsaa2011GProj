@@ -13,7 +13,7 @@ const summary = JSON.parse(fs.readFileSync(path.join(ROOT, "outputs", "summary.j
 
 const pptx = new pptxgen();
 pptx.layout = "LAYOUT_WIDE";
-pptx.author = "DSAA2011 Teaching Reference";
+pptx.author = "DSAA2011 Student Dropout Project";
 pptx.subject = "Student Dropout Project";
 pptx.title = "DSAA2011 Student Dropout Project";
 pptx.company = "HKUST(GZ)";
@@ -86,7 +86,7 @@ function addTitle(slide, title, subtitle) {
 }
 
 function addFooter(slide, n) {
-  slide.addText(`DSAA2011 Student Dropout Reference | ${n}/6`, {
+  slide.addText(`DSAA2011 Student Dropout | ${n}/6`, {
     x: 10.35,
     y: 7.08,
     w: 2.5,
@@ -430,7 +430,6 @@ const topFnFeature = summary.false_negative_profile[0];
     [
       `Counterfactual-style scenario: tuition up-to-date and +3 approved units lowers predicted risk by ${fmt(Math.abs(cfCombined.mean_delta_risk))} on average.`,
       `False negatives look stronger academically; top FN contrast is ${topFnFeature.feature}.`,
-      "本答案仅供参考评分标准，学生核心ML实现需独立完成。",
     ],
     0.88,
     5.42,
