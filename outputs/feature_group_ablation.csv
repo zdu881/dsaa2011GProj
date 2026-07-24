@@ -1,0 +1,7 @@
+feature_group,n_features,f1_macro
+All Features,54,0.8875954117501982
+Topographic+Soil,50,0.8818604816113897
+Topographic+Wilderness,14,0.8740580910623204
+Topographic,10,0.8612069719927259
+Soil,40,0.488527450667783
+Wilderness,4,0.1862393969851917

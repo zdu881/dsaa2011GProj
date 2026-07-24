@@ -1,4 +1,0 @@
-experiment,n_raw_features,AUC,recall,precision,f1,interpretation,leakage_risk_for_early_intervention
-Enrollment only,24,0.8379184104121966,0.6338028169014085,0.7377049180327869,0.6818181818181818,"Pre-enrollment screening; useful for planning, weak for precise intervention.",Low
-Enrollment + 1st semester,30,0.938680347545302,0.852112676056338,0.8918918918918919,0.8715486194477791,Actionable early warning; available after first-semester outcomes.,Low
-Enrollment + 1st + 2nd semester,36,0.9640168815810903,0.8826291079812206,0.9170731707317074,0.8995215311004785,Retrospective diagnosis; strongest accuracy but may be late for prevention.,High if claimed as early warning

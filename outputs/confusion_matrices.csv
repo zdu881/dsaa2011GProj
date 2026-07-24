@@ -1,7 +1,0 @@
-model,split,tn_graduate,fp_dropout,fn_dropout,tp_dropout
-Logistic Regression,Train,1473,73,155,840
-Logistic Regression,Test,629,34,50,376
-Logistic Regression,Full,2102,107,205,1216
-Decision Tree,Train,1507,39,181,814
-Decision Tree,Test,632,31,84,342
-Decision Tree,Full,2139,70,265,1156

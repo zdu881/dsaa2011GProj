@@ -1,0 +1,49 @@
+
+    Key Findings:
+    ------------
+    1. Advanced Models:
+       - Random Forest with 120 trees achieved the best performance among individual models
+       - Gradient Boosting also performed well but with slightly lower F1 score
+       - Increasing trees from 120 to 200 showed marginal improvement
+    
+    2. Feature Engineering (Polynomial Features):
+       - Created polynomial features (degree 2) for top 5 features
+       - Logistic Regression with polynomial features showed improvement over baseline LR
+       - Tuned LR with polynomial features achieved better results
+    
+    3. Feature Selection:
+       - Using top 20 features achieved similar performance to using all 54 features
+       - Top 30 features achieved F1 = 0.9085 (best overall!)
+       - Elevation and road distance are consistently important
+    
+    4. Feature Importance:
+       - Elevation and aspect are the most important topographic features
+       - Soil type indicators collectively contribute significantly
+       - Wilderness area indicators are less important individually
+    
+    5. Hyperparameter Tuning:
+       - Tuning Decision Tree did NOT improve performance (0.8191 -> 0.7970)
+       - Original parameters were already near-optimal
+    
+    6. Class Imbalance (SMOTE):
+       - SMOTE helped balance the training data
+       - Improved F1 from 0.8191 to 0.8294 (+0.0103)
+       - Modest but meaningful improvement
+    
+    7. Model Calibration:
+       - Random Forest was reasonably well-calibrated (Brier: 0.0240)
+       - Sigmoid calibration slightly improved (Brier: 0.0215)
+       - Calibration varies by class
+    
+    8. Ensemble Methods:
+       - Voting classifier combined RF, GB, and DT
+       - Achieved F1 = 0.8845 (strong but below RF)
+    
+    Recommendations:
+    ---------------
+    1. Use Random Forest with Top 30 features (F1 = 0.9085) for production
+    2. SMOTE provides modest improvement for minority classes
+    3. Feature selection reduces complexity with better performance
+    4. Hyperparameter tuning is not always beneficial
+    5. Ensembles are effective but computationally expensive
+    
