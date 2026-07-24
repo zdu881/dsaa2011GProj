@@ -1,6 +1,0 @@
-model,elevation_band,n,accuracy,f1_macro,dominant_true_class,dominant_true_class_name
-Random Forest,"(1886.999, 2753.0]",7217,0.8737702646529029,0.7827872461783545,2,Lodgepole Pine
-Random Forest,"(2753.0, 2939.0]",7238,0.8936170212765957,0.7725553206266914,2,Lodgepole Pine
-Random Forest,"(2939.0, 3058.0]",7164,0.8929369067560022,0.8222121703085902,2,Lodgepole Pine
-Random Forest,"(3058.0, 3198.0]",7194,0.9138170697803726,0.8231784294191415,1,Spruce/Fir
-Random Forest,"(3198.0, 3856.0]",7187,0.9378043689995825,0.9217117894230459,1,Spruce/Fir

@@ -1,2 +1,0 @@
-n_enrolled,mean_risk,median_risk,q25_risk,q75_risk,risk_ge_0.50_count,risk_ge_0.50_rate,early_model_top25_cutoff,risk_ge_early_top25_cutoff_count,risk_ge_early_top25_cutoff_rate
-794,0.45208587193712546,0.40041417505665955,0.16899111266139666,0.7165881348182471,333,0.4193954659949622,0.9150904067455554,95,0.11964735516372796
