@@ -1,0 +1,56 @@
+@page {
+  size: A4;
+  margin: 0.55in;
+}
+
+body {
+  color: #1f2a33;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 10.2pt;
+  line-height: 1.24;
+}
+
+h1 {
+  color: #111827;
+  font-size: 17pt;
+  margin: 0.6em 0 0.25em;
+}
+
+h2 {
+  color: #111827;
+  font-size: 12pt;
+  margin: 0.55em 0 0.2em;
+}
+
+p {
+  margin: 0.28em 0;
+}
+
+table {
+  border-collapse: collapse;
+  font-size: 7.6pt;
+  margin: 0.4em 0;
+  width: 100%;
+}
+
+th,
+td {
+  border: 1px solid #d8dee4;
+  padding: 2px 4px;
+  vertical-align: top;
+}
+
+th {
+  background: #f1f5f9;
+}
+
+img {
+  display: block;
+  margin: 0.18em auto;
+  max-height: 3.85in;
+  max-width: 100%;
+}
+
+figure {
+  margin: 0.25em 0;
+}

@@ -1,4 +1,7 @@
-Dataset: Predict Students' Dropout and Academic Success
-Source: https://archive.ics.uci.edu/static/public/697/predict+students+dropout+and+academic+success.zip
-Original file: data.csv in the downloaded UCI zip archive
-Local normalized file: ../student_dropout.csv
+Dataset: Covertype / Forest Cover Type
+Source: https://archive.ics.uci.edu/ml/machine-learning-databases/covtype/covtype.data.gz
+Rows: 581012
+Features: 54 cartographic variables plus Cover_Type target
+Target labels: 1 Spruce/Fir, 2 Lodgepole Pine, 3 Ponderosa Pine,
+  4 Cottonwood/Willow, 5 Aspen, 6 Douglas-fir, 7 Krummholz
+Prepared file: data/covertype.csv.gz

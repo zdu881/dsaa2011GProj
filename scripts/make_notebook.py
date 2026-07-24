@@ -1,4 +1,4 @@
-"""Generate the project Jupyter notebook from the audited analysis script."""
+"""Generate the Covertype Jupyter notebook from the audited scripts."""
 
 from __future__ import annotations
 
@@ -8,11 +8,12 @@ import nbformat as nbf
 
 
 ROOT = Path(__file__).resolve().parents[1]
-ANALYSIS_PATH = ROOT / "analysis_student_dropout.py"
-NOTEBOOK_PATH = ROOT / "project_student_dropout.ipynb"
+ANALYSIS_PATH = ROOT / "analysis_covertype.py"
+PREPARE_PATH = ROOT / "scripts" / "prepare_data.py"
+NOTEBOOK_PATH = ROOT / "project_covertype.ipynb"
 
 
-def current_versions_cell() -> str:
+def versions_cell() -> str:
     return """\
 import importlib
 
@@ -23,7 +24,7 @@ packages = [
     "matplotlib",
     "seaborn",
     "scipy",
-    "imblearn",
+    "nbformat",
 ]
 
 for package in packages:
@@ -41,111 +42,72 @@ import pandas as pd
 from IPython.display import Image, display
 
 summary = json.loads(Path("outputs/summary.json").read_text(encoding="utf-8"))
+print("Best model:", summary["best_model_name"])
+display(pd.DataFrame([summary["best_model_test_metrics"]]))
 
-print("Preprocessing summary")
-display(pd.DataFrame([summary["preprocessing"]]))
+tables = [
+    "target_counts.csv",
+    "wilderness_area_summary.csv",
+    "wilderness_cover_distribution.csv",
+    "clustering_evaluation.csv",
+    "train_test_full_metrics.csv",
+    "model_comparison.csv",
+    "cross_validation.csv",
+    "feature_importance_top20.csv",
+    "permutation_importance_top15.csv",
+    "feature_group_ablation.csv",
+    "calibration_summary.csv",
+    "elevation_band_metrics.csv",
+    "wilderness_model_metrics.csv",
+    "class_report_best_model.csv",
+    "computational_cost_estimates.csv",
+    "optimization_directions.csv",
+    "runtime_profile.csv",
+]
 
-print("Clustering evaluation")
-display(pd.read_csv("outputs/clustering_evaluation.csv"))
+for table in tables:
+    print(f"outputs/{table}")
+    display(pd.read_csv(Path("outputs") / table).head(20))
 
-print("Binary classification test metrics")
-display(pd.read_csv("outputs/test_metrics_lr_tree.csv"))
+figures = [
+    "target_distribution.png",
+    "wilderness_cover_distribution.png",
+    "missing_ratios.png",
+    "tsne_target.png",
+    "kmeans_elbow_silhouette.png",
+    "hierarchical_dendrogram.png",
+    "clustering_tsne.png",
+    "confusion_logistic_regression.png",
+    "confusion_decision_tree.png",
+    "model_comparison_f1_auc.png",
+    "roc_ovr_models.png",
+    "feature_importance_top15.png",
+    "permutation_importance_top15.png",
+    "feature_group_ablation.png",
+    "calibration_reliability.png",
+    "elevation_band_accuracy.png",
+    "wilderness_model_metrics.png",
+    "error_confidence.png",
+    "class_recall_comparison.png",
+    "computational_cost_tiers.png",
+]
 
-print("Cross-validation")
-display(pd.read_csv("outputs/cross_validation.csv"))
-
-print("Model comparison")
-display(pd.read_csv("outputs/model_comparison.csv"))
-
-print("SMOTE summary")
-display(pd.read_csv("outputs/smote_summary.csv"))
-
-print("Early warning comparison")
-display(pd.read_csv("outputs/early_warning_comparison.csv"))
-
-print("Feature ablation")
-display(pd.read_csv("outputs/feature_ablation.csv"))
-
-print("Threshold tuning")
-display(pd.read_csv("outputs/threshold_tuning.csv"))
-
-print("Intervention coverage curve")
-display(pd.read_csv("outputs/intervention_coverage_curve.csv"))
-
-print("Prediction time discussion")
-display(pd.read_csv("outputs/prediction_time_discussion.csv"))
-
-print("Permutation importance")
-display(pd.read_csv("outputs/permutation_importance_top10.csv"))
-
-print("Fairness by group")
-display(pd.read_csv("outputs/fairness_by_group.csv"))
-
-print("Enrolled risk summary")
-display(pd.read_csv("outputs/enrolled_risk_summary.csv"))
-
-print("Calibration summary")
-display(pd.read_csv("outputs/calibration_summary.csv"))
-
-print("Calibrated model comparison")
-display(pd.read_csv("outputs/calibrated_model_comparison.csv"))
-
-print("Bootstrap metric confidence intervals")
-display(pd.read_csv("outputs/bootstrap_metric_ci.csv"))
-
-print("Partial dependence")
-display(pd.read_csv("outputs/partial_dependence.csv"))
-
-print("Counterfactual scenarios")
-display(pd.read_csv("outputs/counterfactual_scenarios.csv"))
-
-print("Group calibration summary")
-display(pd.read_csv("outputs/group_calibration_summary.csv"))
-
-print("Fairness bootstrap confidence intervals")
-display(pd.read_csv("outputs/fairness_bootstrap_ci.csv"))
-
-print("False negative profile")
-display(pd.read_csv("outputs/false_negative_profile.csv"))
-
-for fig_path in [
-    "figures/target_distribution.png",
-    "figures/tsne_target.png",
-    "figures/kmeans_elbow_silhouette.png",
-    "figures/hierarchical_dendrogram.png",
-    "figures/clustering_tsne.png",
-    "figures/confusion_logistic_regression.png",
-    "figures/confusion_decision_tree.png",
-    "figures/roc_lr_tree.png",
-    "figures/feature_importance_top5.png",
-    "figures/model_comparison_auc.png",
-    "figures/early_warning_comparison.png",
-    "figures/feature_ablation.png",
-    "figures/threshold_tuning.png",
-    "figures/intervention_coverage_curve.png",
-    "figures/permutation_importance_top10.png",
-    "figures/fairness_group_metrics.png",
-    "figures/enrolled_risk_distribution.png",
-    "figures/calibration_curves.png",
-    "figures/calibrated_model_curves.png",
-    "figures/calibrated_model_comparison.png",
-    "figures/bootstrap_metric_ci.png",
-    "figures/partial_dependence_key_features.png",
-    "figures/counterfactual_scenarios.png",
-    "figures/group_calibration.png",
-    "figures/fairness_bootstrap_ci.png",
-    "figures/false_negative_profile.png",
-]:
-    print(fig_path)
-    display(Image(filename=fig_path))
+for figure in figures:
+    print(f"figures/{figure}")
+    display(Image(filename=str(Path("figures") / figure)))
 """
 
 
 def main() -> None:
     analysis_code = ANALYSIS_PATH.read_text(encoding="utf-8")
     analysis_code = analysis_code.replace(
-        'ROOT = Path(__file__).resolve().parent',
-        'ROOT = Path.cwd()  # Jupyter-safe project root',
+        "ROOT = Path(__file__).resolve().parent",
+        "ROOT = Path.cwd()  # Jupyter-safe project root",
+    )
+    prepare_code = PREPARE_PATH.read_text(encoding="utf-8")
+    prepare_code = prepare_code.replace(
+        "ROOT = Path(__file__).resolve().parents[1]",
+        "ROOT = Path.cwd()  # Jupyter-safe project root",
     )
 
     nb = nbf.v4.new_notebook()
@@ -160,43 +122,35 @@ def main() -> None:
             "pygments_lexer": "ipython3",
         },
     }
-
     nb["cells"] = [
         nbf.v4.new_markdown_cell(
-            "# DSAA2011 Student Dropout Project\n\n"
-            "This notebook is the complete reproducible implementation for the "
-            "Student Dropout dataset. It follows the required order: data "
-            "preprocessing, t-SNE visualization, clustering, supervised "
-            "prediction, evaluation, and open-ended exploration. All random "
-            "operations use `random_state=42`."
+            "# DSAA2011 Covertype Project\n\n"
+            "This notebook reproduces the full Covertype analysis: data preparation, "
+            "preprocessing, t-SNE visualization, clustering, supervised prediction, "
+            "evaluation, and open-ended exploration. All stochastic steps use "
+            "`random_state=42`."
         ),
-        nbf.v4.new_markdown_cell(
-            "## Library Versions\n\n"
-            "The current environment versions are printed below. The generated "
-            "`requirements_student_dropout.txt` records the same pinned versions."
-        ),
-        nbf.v4.new_code_cell(current_versions_cell()),
+        nbf.v4.new_markdown_cell("## Library Versions"),
+        nbf.v4.new_code_cell(versions_cell()),
         nbf.v4.new_markdown_cell(
             "## Data Preparation\n\n"
-            "The official UCI archive is semicolon-delimited. The preparation "
-            "script downloads the zip if necessary, preserves the raw file under "
-            "`data/`, strips whitespace from column names, and writes the "
-            "comma-separated `student_dropout.csv` expected by the project."
+            "The UCI raw gzip file is converted into `data/covertype.csv.gz` with "
+            "official feature names. The preparation code is embedded here so the "
+            "submission notebook does not depend on an external script."
         ),
-        nbf.v4.new_code_cell("%run scripts/prepare_data.py"),
+        nbf.v4.new_code_cell(prepare_code),
         nbf.v4.new_markdown_cell(
             "## Complete Analysis Code\n\n"
-            "The cell below contains the full implementation used to generate all "
-            "figures and tables. It is intentionally kept in one audited block so "
-            "the notebook and source script remain consistent."
+            "The following cell is the same implementation as `analysis_covertype.py`, "
+            "with only the project-root path adjusted for notebook execution."
         ),
         nbf.v4.new_code_cell(analysis_code),
-        nbf.v4.new_markdown_cell("## Results Display"),
+        nbf.v4.new_markdown_cell("## Results"),
         nbf.v4.new_code_cell(display_results_cell()),
     ]
 
     nbf.write(nb, NOTEBOOK_PATH)
-    print(f"Wrote {NOTEBOOK_PATH}")
+    print(f"Wrote {NOTEBOOK_PATH.relative_to(ROOT)}")
 
 
 if __name__ == "__main__":
