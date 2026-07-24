@@ -1,0 +1,12 @@
+{
+  "cache_tag": "covertype_optimized_v1",
+  "stage": "modeling",
+  "random_state": 42,
+  "model_sample_size": 120000,
+  "cv_sample_size": 36000,
+  "tsne_sample_size": 6000,
+  "cluster_sample_size": 6000,
+  "agglomerative_sample_size": 2500,
+  "permutation_sample_size": 8000,
+  "minibatch_size": 2048
+}

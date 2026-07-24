@@ -1,0 +1,2 @@
+model,multiclass_brier,expected_calibration_error,mean_confidence,observed_accuracy
+"Decision Tree, sigmoid calibrated",0.30795566225293675,0.11761232953938129,0.6834154482383966,0.8010277777777778

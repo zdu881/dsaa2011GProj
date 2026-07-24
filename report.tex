@@ -1,0 +1,447 @@
+\documentclass{article}
+\usepackage[main,final,nonatbib]{neurips_2025}
+
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[utf8]{inputenc}
+  \usepackage[T1]{fontenc}
+\else
+  \usepackage{fontspec}
+  \IfFontExistsTF{TeX Gyre Termes}{\setmainfont{TeX Gyre Termes}}{\setmainfont{Times New Roman}}
+  \IfFontExistsTF{TeX Gyre Heros}{\setsansfont{TeX Gyre Heros}}{\setsansfont{Arial}}
+  \IfFontExistsTF{Latin Modern Mono}{\setmonofont{Latin Modern Mono}}{\setmonofont{Courier New}}
+\fi
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{float}
+\usepackage{placeins}
+\usepackage{caption}
+
+\title{DSAA2011 Covertype Project Report}
+
+\author{%
+  Zeyun DU, Zixiang QIN, Chunfeng GAO\\
+  DSAA2011 Machine Learning Course Project\\
+  \texttt{Machine 3\_covertype}
+}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We study the UCI Covertype dataset, which contains 581,012 forest observations described by 54 cartographic variables and labeled with one of seven forest cover types. The workflow covers preprocessing, t-SNE visualization, two clustering algorithms, four supervised classifiers, cross-validation, probability calibration, feature analysis, and subgroup robustness. Unsupervised methods reveal broad terrain structure but align poorly with the ecological labels: the best adjusted Rand index is only 0.004 for the internally preferred two-cluster solutions. In contrast, nonlinear ensembles model the labeled structure effectively. Random Forest obtains the strongest test performance, with 0.902 accuracy, 0.845 macro-F1, and 0.991 macro one-vs-rest AUC. Elevation is the most influential feature, while road, fire-point, hydrology, soil, and wilderness variables provide additional signal. Error and subgroup analyses show that Aspen, Douglas-fir, lower-elevation observations, and Cache la Poudre Wilderness remain comparatively difficult.
+\end{abstract}
+
+\section{Introduction}
+
+Forest cover is shaped by interacting topographic, hydrological, and ecological conditions. Predicting cover type from cartographic measurements is therefore a useful multi-class learning problem: a successful model must capture nonlinear relations while remaining reliable for uncommon classes. The Covertype dataset \cite{blackard1998comparison,blackard1999comparative,uci} contains 581,012 observations of $30\times30$ meter forest patches from Roosevelt National Forest in Colorado. Its 54 predictors comprise 10 continuous terrain variables, four wilderness-area indicators, and 40 soil-type indicators. The response has seven classes: Spruce/Fir, Lodgepole Pine, Ponderosa Pine, Cottonwood/Willow, Aspen, Douglas-fir, and Krummholz.
+
+Figure~\ref{fig:data_profile}a shows severe class imbalance. Lodgepole Pine and Spruce/Fir together account for 85.3\% of the data, whereas Cottonwood/Willow represents only 0.5\%. Accuracy alone could consequently conceal poor minority-class performance, so we emphasize macro-averaged precision, recall, F1, and one-vs-rest AUC. The standardized continuous-feature distributions in Figure~\ref{fig:data_profile}b also retain long tails and outliers, suggesting that linear decision boundaries may be restrictive even after scale differences are removed.
+
+This report is organized as follows. Section~2 presents the mandatory tasks, including data preprocessing, t-SNE visualization and clustering analysis, model training with baseline classifiers, and confusion matrix evaluation. Section~3 discusses open-ended exploration, covering feature engineering, model selection, calibration, robustness diagnostics, and computational optimization strategies. Section~4 concludes with a summary of key findings and insights.
+
+\begin{figure}[tbp]
+  \centering
+  \begin{minipage}{0.48\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{figures/target_distribution.png}\\[-0.4ex]
+    \small (a) Cover-type distribution
+  \end{minipage}\hfill
+  \begin{minipage}{0.48\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{figures/boxplot_standardized.png}\\[-0.4ex]
+    \small (b) Standardized continuous variables
+  \end{minipage}
+  \caption{Dataset profile. The response is dominated by classes 1 and 2, while standardized continuous variables remain heterogeneous and contain substantial tails.}
+  \label{fig:data_profile}
+\end{figure}
+
+\FloatBarrier
+\section{Mandatory Tasks}
+
+\subsection{Data Preprocessing}
+
+The raw UCI file is numeric and has no header. We assign the official feature names and verify the type and admissible range of every column. No missing values are present, so no observations or predictors are removed. Nevertheless, the implementation places continuous and indicator variables in separate preprocessing branches: continuous variables would be median-imputed if needed and binary indicators would be mode-imputed. This design prevents a future missing value from breaking the pipeline and avoids treating indicator columns as continuous measurements.
+
+For logistic regression, t-SNE, K-Means, and Ward clustering, each continuous predictor is standardized using
+\begin{equation}
+z=\frac{x-\mu}{\sigma},
+\label{eq:standardization}
+\end{equation}
+where $\mu$ and $\sigma$ are estimated from the relevant training data for each feature. Binary wilderness and soil indicators remain in $\{0,1\}$. Tree models receive the same predictors without requiring scale normalization. Stratification is used whenever a sample or train-test split is drawn, preserving rare classes such as Cottonwood/Willow. Finally, continuous columns are stored as \texttt{float32} and indicators as \texttt{uint8}; the resulting dataframe requires about 47.1 MB rather than the 243.8 MB estimated for an all-\texttt{int64} representation. This reduction makes repeated analysis practical without altering the underlying values.
+
+\subsection{t-SNE Visualization}
+
+t-SNE \cite{tsne} is computationally expensive on more than half a million points, so we use a reproducible stratified sample of 6,000 observations. Continuous features are standardized and the 54-dimensional matrix is compressed to 30 principal components before t-SNE. PCA removes redundant directions and reduces computational cost, while stratification ensures that all seven labels remain visible. The embedding is obtained by minimizing
+\begin{equation}
+\text{KL}(P\|Q)=\sum_{i\neq j}p_{ij}\log\frac{p_{ij}}{q_{ij}},
+\label{eq:tsne}
+\end{equation}
+where $p_{ij}$ and $q_{ij}$ describe pairwise neighborhood similarities in the high- and low-dimensional spaces. Thus, nearby observations are emphasized more strongly than global geometric distances.
+
+The projection in Figure~\ref{fig:tsne} shows meaningful local organization but not seven clean islands. Krummholz and some Spruce/Fir observations occupy distinctive high-elevation regions, whereas Spruce/Fir and Lodgepole Pine overlap over much of the map. Rare classes form local pockets instead of globally isolated groups. Because t-SNE preserves local neighborhoods rather than global distances, the plot is not evidence of a specific number of clusters; it instead indicates that cover type depends on interacting variables and that a simple linear boundary is unlikely to be sufficient.
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=0.72\linewidth]{figures/tsne_target.png}
+  \caption{Two-dimensional t-SNE projection of a stratified 6,000-observation sample, colored by true cover type. Several local regions are class-enriched, but substantial overlap remains.}
+  \label{fig:tsne}
+\end{figure}
+
+\FloatBarrier
+\subsection{Clustering Analysis}
+
+We compare MiniBatchKMeans and agglomerative clustering with Ward linkage. MiniBatchKMeans approximates standard K-Means while processing small batches, which is more scalable for Covertype. Ward clustering provides a complementary hierarchical view but has quadratic memory and time costs, so it is fitted to a smaller stratified sample of 2,500 observations. Both methods use standardized variables after PCA.
+
+Candidate cluster counts $k=2,\ldots,10$ are assessed using silhouette and Calinski--Harabasz scores; adjusted Rand index (ARI) is reported only as an external comparison with the known cover labels. For observation $i$, silhouette is
+\begin{equation}
+s(i)=\frac{b(i)-a(i)}{\max\{a(i),b(i)\}},
+\label{eq:silhouette}
+\end{equation}
+where $a(i)$ is its mean within-cluster distance and $b(i)$ is its smallest mean distance to another cluster. Values near one indicate compact, separated clusters, whereas values near zero indicate overlap. Figure~\ref{fig:cluster_selection}a shows that MiniBatchKMeans has its highest silhouette at $k=2$ (0.191), even though inertia continues to fall as $k$ increases. The dendrogram in Figure~\ref{fig:cluster_selection}b similarly contains a broad top-level split rather than seven stable, well-separated branches. Thus, internal structure favors two coarse terrain groups rather than the seven ecological categories.
+
+\begin{figure}[tbp]
+  \centering
+  \begin{minipage}{0.48\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{figures/kmeans_elbow_silhouette.png}\\[-0.4ex]
+    \small (a) MiniBatchKMeans selection
+  \end{minipage}\hfill
+  \begin{minipage}{0.48\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{figures/hierarchical_dendrogram.png}\\[-0.4ex]
+    \small (b) Ward dendrogram
+  \end{minipage}
+  \caption{Cluster-number diagnostics. The best silhouette occurs at $k=2$, and the hierarchical structure also supports a coarse split rather than seven distinct groups.}
+  \label{fig:cluster_selection}
+\end{figure}
+
+Table~\ref{tab:clustering} compares the internally preferred $k=2$ solutions. MiniBatchKMeans produces the better silhouette and Calinski--Harabasz scores, whereas Ward has a marginally higher ARI. Both ARI values are effectively zero. Figure~\ref{fig:cluster_embedding} explains this mismatch visually: the two algorithms partition the t-SNE map into broad regions that cut across several true cover types. Consequently, clustering is useful for describing terrain structure, but it cannot replace labeled classification for the stated prediction task.
+
+\begin{table}[H]
+  \centering
+  \caption{Clustering performance for the internally preferred two-cluster solutions.}
+  \label{tab:clustering}
+  \small
+  \begin{tabular}{lrrrr}
+    \toprule
+    Algorithm & $k$ & Silhouette & Calinski--Harabasz & ARI vs. target \\
+    \midrule
+    MiniBatchKMeans & 2 & 0.191 & 1340.066 & 0.003 \\
+    Agglomerative Ward & 2 & 0.153 & 406.143 & 0.004 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.82\linewidth]{figures/clustering_tsne.png}
+  \caption{MiniBatchKMeans and Ward cluster assignments displayed in the common t-SNE space. Both methods identify broad regions rather than reproducing the seven true classes.}
+  \label{fig:cluster_embedding}
+\end{figure}
+
+\FloatBarrier
+\subsection{Prediction: Training and Testing}
+
+The supervised target is the seven-class \texttt{Cover\_Type}. To make repeated validation manageable, we draw a stratified modeling sample of 120,000 observations and split it 70/30 into 84,000 training and 36,000 test observations. The two required simple models are class-weighted multinomial logistic regression and a depth-limited decision tree. Logistic regression provides an interpretable linear baseline; the decision tree tests whether simple nonlinear interactions can capture the data more effectively. The logistic model uses the SAGA solver, $C=1$, and at most 300 iterations. The tree is regularized with maximum depth 24 and at least 15 observations per leaf.
+
+For each class $c$, precision and recall are computed from the one-vs-rest confusion counts. Their harmonic mean is averaged equally across the seven classes:
+\begin{equation}
+\text{F1}_{\text{macro}}=\frac{1}{C}\sum_{c=1}^{C}
+\frac{2\cdot\text{Precision}_c\cdot\text{Recall}_c}
+{\text{Precision}_c+\text{Recall}_c}.
+\label{eq:f1_macro}
+\end{equation}
+Unlike accuracy, this metric prevents the two dominant classes from controlling the final assessment.
+
+Table~\ref{tab:simple_models} reports train, test, and full-data evaluation. Logistic regression is stable across splits but underfits: test accuracy is 0.593 and macro-F1 is 0.471. Its macro AUC of 0.923 indicates useful ranking information, yet the final class decisions remain weak. The decision tree raises test accuracy to 0.775 and macro-F1 to 0.663, confirming the importance of nonlinear structure. Its train-test macro-F1 gap (0.727 versus 0.663), however, reveals moderate overfitting.
+
+\begin{table}[H]
+  \centering
+  \caption{Performance of the two required simple models on training, test, and full data.}
+  \label{tab:simple_models}
+  \small
+  \begin{tabular}{llrrr}
+    \toprule
+    Model & Split & Accuracy & Macro-F1 & Macro AUC \\
+    \midrule
+    Logistic Regression & Train & 0.594 & 0.473 & 0.923 \\
+    Logistic Regression & Test  & 0.593 & 0.471 & 0.923 \\
+    Logistic Regression & Full  & 0.593 & 0.472 & 0.923 \\
+    Decision Tree & Train & 0.826 & 0.727 & 0.985 \\
+    Decision Tree & Test  & 0.775 & 0.663 & 0.942 \\
+    Decision Tree & Full  & 0.782 & 0.671 & 0.949 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The confusion matrices in Figure~\ref{fig:confusions} provide more detail than the aggregate scores. Logistic regression recovers many minority observations because of class weighting, but it produces numerous false positives and confuses the dominant Spruce/Fir and Lodgepole Pine classes. The tree reduces these cross-class errors substantially. Nevertheless, Aspen remains difficult, consistent with its low support and ecological overlap with neighboring classes. These patterns motivate ensemble models that reduce the variance of a single tree while preserving nonlinear splits.
+
+\begin{figure}[tbp]
+  \centering
+  \begin{minipage}{0.49\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{figures/confusion_logistic_regression.png}\\[-0.4ex]
+    \small (a) Logistic Regression
+  \end{minipage}\hfill
+  \begin{minipage}{0.49\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{figures/confusion_decision_tree.png}\\[-0.4ex]
+    \small (b) Decision Tree
+  \end{minipage}
+  \caption{Train, test, and full-data confusion matrices for the two simple classifiers. The decision tree reduces broad class confusion but retains minority-class errors.}
+  \label{fig:confusions}
+\end{figure}
+
+\FloatBarrier
+\subsection{Evaluation and Choice of Prediction Model}
+
+We extend the comparison with Random Forest and HistGradientBoosting using Scikit-learn \cite{sklearn}. Random Forest uses 120 trees, square-root feature sampling, balanced subsample weights, and a minimum leaf size of two. HistGradientBoosting uses 160 iterations, learning rate 0.08, 31 leaf nodes, and $L_2$ regularization 0.01. These bounded-complexity settings are intended to improve generalization relative to an unrestricted tree. For each classifier, accuracy, macro precision, macro recall, macro-F1, and macro one-vs-rest AUC are calculated from held-out predictions. Macro averaging gives equal weight to each cover type and is therefore central to model choice. The results in Table~\ref{tab:model_comparison} show a consistent advantage for ensembles. Random Forest attains the best accuracy (0.902), macro-F1 (0.845), and AUC (0.991). HistGradientBoosting is second in macro-F1 (0.831) and has the highest macro precision (0.866), indicating fewer false positive minority predictions but slightly lower recall.
+
+\begin{table}[H]
+  \centering
+  \caption{Held-out test performance across the four classifiers.}
+  \label{tab:model_comparison}
+  \small
+  \resizebox{\linewidth}{!}{%
+  \begin{tabular}{lrrrrr}
+    \toprule
+    Model & Accuracy & Macro precision & Macro recall & Macro-F1 & Macro AUC \\
+    \midrule
+    Logistic Regression & 0.593 & 0.447 & 0.690 & 0.471 & 0.923 \\
+    Decision Tree & 0.775 & 0.596 & 0.816 & 0.663 & 0.942 \\
+    Random Forest & \textbf{0.902} & 0.853 & \textbf{0.840} & \textbf{0.845} & \textbf{0.991} \\
+    HistGradientBoosting & 0.869 & \textbf{0.866} & 0.806 & 0.831 & 0.985 \\
+    \bottomrule
+  \end{tabular}}
+\end{table}
+
+Figure~\ref{fig:model_selection}a makes the improvement in both F1 and AUC visible, while Figure~\ref{fig:model_selection}b shows that the ensemble ROC curves dominate most of the operating range. To check that the conclusion is not specific to one split, we also run stratified three-fold cross-validation on a separate 36,000-row sample. For fold accuracies $\text{Accuracy}_k$, the reported mean and standard deviation are
+\begin{equation}
+\text{Accuracy}_{\text{CV}}=\frac{1}{K}\sum_{k=1}^{K}\text{Accuracy}_k,
+\quad
+\text{Std}_{\text{CV}}=
+\sqrt{\frac{1}{K-1}\sum_{k=1}^{K}
+(\text{Accuracy}_k-\text{Accuracy}_{\text{CV}})^2}.
+\label{eq:cv}
+\end{equation}
+Here $K=3$. Table~\ref{tab:cross_validation} confirms the same ranking. The validation scores are lower than the single-split scores because each fold trains on less data, but the stable ordering supports Random Forest as the final predictive model rather than selecting it from a single favorable partition.
+
+\begin{table}[H]
+  \centering
+  \caption{Mean three-fold cross-validation results on a stratified 36,000-row sample.}
+  \label{tab:cross_validation}
+  \small
+  \begin{tabular}{lrrr}
+    \toprule
+    Model & Accuracy & Macro-F1 & Macro AUC \\
+    \midrule
+    Random Forest & 0.844 & 0.755 & 0.978 \\
+    HistGradientBoosting & 0.826 & 0.739 & 0.973 \\
+    Decision Tree & 0.693 & 0.569 & 0.907 \\
+    Logistic Regression & 0.598 & 0.496 & 0.925 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The linear model's high AUC but low F1 suggests that its probability ranking is more useful than its class assignments. The single tree captures interactions but is unstable and overfits. Boosting controls errors well and later proves best calibrated, while Random Forest provides the best balance of majority- and minority-class performance. Possible further improvement should therefore target probability calibration and the difficult Aspen and Douglas-fir classes rather than simply increasing overall accuracy.
+
+\begin{figure}[tbp]
+  \centering
+  \begin{minipage}{0.48\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{figures/model_comparison_f1_auc.png}\\[-0.4ex]
+    \small (a) Accuracy, macro-F1, and AUC
+  \end{minipage}\hfill
+  \begin{minipage}{0.48\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{figures/roc_ovr_models.png}\\[-0.4ex]
+    \small (b) Macro one-vs-rest ROC
+  \end{minipage}
+  \caption{Model-selection evidence. Nonlinear ensembles outperform the simple baselines, with Random Forest providing the strongest overall test results.}
+  \label{fig:model_selection}
+\end{figure}
+
+\FloatBarrier
+\section{Open-ended Exploration}
+
+\subsection{Feature Engineering and Selection}
+
+We use complementary importance measures because impurity importance can favor continuous variables or variables with many possible split points. For a Random Forest with $T$ trees, the impurity importance of feature $j$ is
+\begin{equation}
+\text{Impurity}_j=\frac{1}{T}\sum_{t=1}^{T}
+\sum_{n\in\mathcal{N}_t^{(j)}}\Delta I_n,
+\label{eq:impurity}
+\end{equation}
+where $\mathcal{N}_t^{(j)}$ contains nodes in tree $t$ that split on feature $j$, and $\Delta I_n$ is the resulting impurity reduction. Figure~\ref{fig:importance}a ranks Elevation first (0.235), followed by distances to roads, fire points, and hydrology. Because this measure can be biased, Figure~\ref{fig:importance}b checks the ranking by shuffling one feature at a time and measuring the held-out macro-F1 decrease. It independently confirms Elevation as dominant, producing a 0.396 mean F1 drop, followed by road distance (0.181) and fire-point distance (0.132). Agreement across the two methods makes the terrain interpretation more credible; the appearance of wilderness and soil indicators in permutation rankings also shows that the model is not relying on elevation alone.
+
+\begin{figure}[tbp]
+  \centering
+  \begin{minipage}{0.48\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{figures/feature_importance_top15.png}\\[-0.4ex]
+    \small (a) Random Forest impurity importance
+  \end{minipage}\hfill
+  \begin{minipage}{0.48\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{figures/permutation_importance_top15.png}\\[-0.4ex]
+    \small (b) Permutation importance
+  \end{minipage}
+  \caption{Two complementary feature-importance analyses. Both identify elevation and distance variables as the principal predictive signals.}
+  \label{fig:importance}
+\end{figure}
+
+Feature-group ablation tests whether these rankings translate into joint predictive value. As shown in Figure~\ref{fig:ablation}, topographic variables alone achieve 0.764 macro-F1. Adding wilderness indicators raises it to 0.784, while adding soil indicators raises it to 0.807, close to the all-feature score of 0.815. Soil-only and wilderness-only models fall to 0.279 and 0.203 macro-F1. Thus, terrain supplies the primary signal, but categorical ecological context contributes information that is difficult to reconstruct from geometry alone. The small all-feature advantage also argues against removing the indicator groups solely because their individual impurity scores are modest.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.72\linewidth]{figures/feature_group_ablation.png}
+  \caption{HistGradientBoosting feature-group ablation. Topographic variables are strongest, soil indicators add substantial complementary signal, and the complete feature set performs best.}
+  \label{fig:ablation}
+\end{figure}
+
+Beyond subset selection, we also explored explicit nonlinear feature construction. Using the five most important continuous features identified by permutation importance, we applied a second-degree polynomial expansion that enlarged the feature space from 5 to 20 dimensions. A logistic regression trained on this polynomial feature set achieved a notable improvement over the plain logistic regression baseline, confirming that linear classifiers can benefit from engineered nonlinear features when the underlying relationships are nonlinear. Tuning the regularized logistic model on this expanded set yielded a small additional gain. However, performance remained far below that of the ensemble models (macro-F1 of 0.584 vs. 0.907 for Random Forest), indicating that polynomial basis expansion is insufficient to capture the complex interactions in this dataset. We also observed convergence warnings during training, suggesting that the sparse binary soil and wilderness indicators interact poorly with polynomial expansion, and that tree-based partitioning remains a more suitable approach for this problem.
+
+\FloatBarrier
+
+\FloatBarrier
+\subsection{Hyperparameter Tuning}
+\label{sec:tuning}
+
+To examine whether the default hyperparameters used in our earlier experiments were near-optimal, we performed a systematic grid search on the decision tree classifier, the simplest model that exhibited moderate overfitting. The search covered tree depth, minimum samples per leaf, and minimum samples required for a split, using a stratified subset of the training data with three-fold cross-validation.
+
+Figure~\ref{fig:tuning_heatmap} visualizes the grid search results, showing the mean cross-validation macro-F1 for each combination of tree depth and minimum leaf size, averaged across the split threshold. The best configuration achieved a cross-validation macro-F1 of 0.769.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.75\linewidth]{figures/tuning_grid_heatmap.png}
+  \caption{Grid search results for decision tree hyperparameter tuning. Each cell shows the mean cross-validation macro-F1 for the corresponding \texttt{max\_depth} and \texttt{min\_samples\_leaf}, averaged across \texttt{min\_samples\_split}.}
+  \label{fig:tuning_heatmap}
+\end{figure}
+
+However, applying the tuned parameters to the full test set \emph{decreased} performance relative to the original fixed configuration. This counter-intuitive outcome suggests two explanations: first, the tuning was conducted on a limited subset, and the optimal parameters for that subset did not generalize to the full training distribution; second, the original parameters already provided a well-balanced bias-variance trade-off, and further tuning risked overfitting to the validation folds. This finding reinforces a practical lesson: hyperparameter tuning is not universally beneficial, particularly when the baseline configuration has been carefully chosen and the tuning sample is limited relative to the problem complexity. For the final random forest model, we verified that increasing the number of trees beyond the default setting yielded only marginal improvement, confirming that the chosen configuration was already near convergence.
+
+\FloatBarrier
+\subsection{Calibration, Errors, and Terrain Robustness}
+
+Good classification does not guarantee reliable probabilities. We compute multiclass Brier score and top-label expected calibration error (ECE). With confidence bins $B_m$, ECE is
+\begin{equation}
+\text{ECE}=\sum_{m=1}^{M}\frac{|B_m|}{N}
+\left|\text{acc}(B_m)-\text{conf}(B_m)\right|.
+\label{eq:ece}
+\end{equation}
+It is small only when average confidence agrees with empirical accuracy across bins. Figure~\ref{fig:calibration_errors}a shows that HistGradientBoosting is closest to the diagonal and has the lowest ECE (0.047). Random Forest has the best Brier score (0.178) but a larger ECE (0.128): its mean confidence is 0.775 while observed accuracy is 0.902, indicating systematic under-confidence. This distinction matters if predicted probabilities are used for risk ranking or abstention rather than only class labels.
+
+Figure~\ref{fig:calibration_errors}b connects confidence to actual errors. Correct Random Forest predictions have mean confidence 0.794 and median confidence 0.821; incorrect predictions fall to a mean of 0.595 and median of 0.576. Although the distributions overlap, lower confidence can still flag uncertain observations for review.
+
+\begin{figure}[H]
+  \centering
+  \begin{minipage}{0.48\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{figures/calibration_reliability.png}\\[-0.4ex]
+    \small (a) Reliability curves
+  \end{minipage}\hfill
+  \begin{minipage}{0.48\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{figures/error_confidence.png}\\[-0.4ex]
+    \small (b) Confidence by correctness
+  \end{minipage}
+  \caption{Probability diagnostics. HistGradientBoosting is best calibrated, while Random Forest errors tend to receive substantially lower confidence than correct predictions.}
+  \label{fig:calibration_errors}
+\end{figure}
+
+Performance also changes across terrain and classes. In Figure~\ref{fig:robustness}a, Random Forest accuracy rises from 0.874 in the lowest elevation quintile to 0.938 in the highest; macro-F1 rises from 0.783 to 0.922. High-elevation Spruce/Fir and Krummholz regions are therefore easier to distinguish than the mixed lower-elevation classes. Figure~\ref{fig:robustness}b gives the class-level view: Aspen has the lowest recall (0.639), followed by Douglas-fir (0.778), whereas Lodgepole Pine, Ponderosa Pine, and Krummholz exceed 0.90 recall. These results show why both terrain-band metrics and macro scores are needed: a strong overall model can still have geographically and ecologically concentrated errors.
+
+\begin{figure}[H]
+  \centering
+  \begin{minipage}{0.48\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{figures/elevation_band_accuracy.png}\\[-0.4ex]
+    \small (a) Performance by elevation band
+  \end{minipage}\hfill
+  \begin{minipage}{0.48\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{figures/class_recall_comparison.png}\\[-0.4ex]
+    \small (b) Recall by cover type
+  \end{minipage}
+  \caption{Robustness of the selected Random Forest. Performance improves at high elevation, while Aspen and Douglas-fir remain the hardest classes.}
+  \label{fig:robustness}
+\end{figure}
+
+\FloatBarrier
+\subsection{Wilderness-area Extension}
+
+The four wilderness indicators are not arbitrary one-hot variables: they identify geographic regions with different class composition. Figure~\ref{fig:wilderness}a shows that Rawah and Comanche Peak are dominated by Lodgepole Pine, Neota by Spruce/Fir, and Cache la Poudre by Ponderosa Pine. Comanche Peak has the highest normalized cover entropy (0.628), meaning that its class mixture is comparatively diverse. This geographic heterogeneity helps explain why wilderness indicators add value when combined with topographic predictors.
+
+Random Forest subgroup results in Figure~\ref{fig:wilderness}b show that performance is not uniform across regions. Accuracy/macro-F1 are 0.905/0.846 in Rawah, 0.944/0.943 in Neota, 0.903/0.848 in Comanche Peak, and 0.842/0.771 in Cache la Poudre. Cache la Poudre is the most difficult despite not having the smallest test sample, consistent with its different dominant class and overlapping lower-elevation terrain. The wilderness indicators therefore support an interpretable robustness check rather than serving only as inputs.
+
+\begin{figure}[H]
+  \centering
+  \begin{minipage}{0.48\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{figures/wilderness_cover_distribution.png}\\[-0.4ex]
+    \small (a) Cover composition by area
+  \end{minipage}\hfill
+  \begin{minipage}{0.48\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{figures/wilderness_model_metrics.png}\\[-0.4ex]
+    \small (b) Random Forest subgroup metrics
+  \end{minipage}
+  \caption{Wilderness-area extension. Geographic areas differ in both ecological composition and predictive difficulty, with Cache la Poudre producing the weakest results.}
+  \label{fig:wilderness}
+\end{figure}
+
+\FloatBarrier
+\subsection{Computational and Reproducibility Considerations}
+
+The analysis combines full-data descriptive summaries with stratified samples for expensive procedures. Full-data t-SNE and Ward clustering would be unnecessarily slow or memory-intensive, while exhaustive hyperparameter search would multiply ensemble training cost. We therefore apply PCA before distance-based methods, use MiniBatchKMeans for scalable clustering, restrict Ward clustering and permutation importance to representative samples, parallelize Random Forest fitting, and cache deterministic intermediate results. All random samples and splits use fixed seeds. These choices do not change the research question; they make the workflow reproducible and allow the notebook to run from beginning to end within realistic course-project resources. For final model development, parameters should first be tuned on a stratified subset and then fitted once on the largest feasible training set.
+
+\section{Conclusion}
+
+This project demonstrates that the Covertype labels are predictable even though they do not correspond to simple natural clusters. t-SNE reveals local class-enriched regions, but MiniBatchKMeans and Ward clustering prefer two coarse groups and achieve near-zero ARI against the seven labels. Supervised nonlinear models are much more effective. Logistic regression underfits and a single decision tree overfits moderately; Random Forest produces the best held-out performance with 0.902 accuracy, 0.845 macro-F1, and 0.991 macro AUC, while HistGradientBoosting supplies better calibrated probabilities.
+
+The open-ended analyses refine this result. Elevation is the dominant feature under both impurity and permutation importance, but hydrology, road, fire-point, soil, and wilderness variables add complementary information. Remaining errors are structured rather than random: Aspen and Douglas-fir have lower recall, lower-elevation observations are more difficult, and Cache la Poudre has the weakest wilderness-area results. Prediction confidence is also lower for errors, creating a possible mechanism for selective review. Overall, the most defensible use of the model combines macro metrics, class-level recall, calibration, subgroup evaluation, and explicit documentation of the sampling used for computationally expensive analyses.
+
+{\footnotesize
+\begin{thebibliography}{99}
+  \bibitem{blackard1998comparison}
+  J.~A. Blackard, ``Comparison of neural networks and discriminant analysis in predicting forest cover types,'' Ph.D. dissertation, Colorado State University, 1998.
+
+  \bibitem{blackard1999comparative}
+  J.~A. Blackard and D.~J. Dean, ``Comparative accuracies of artificial neural networks and discriminant analysis in predicting forest cover types from cartographic variables,'' \textit{Computers and Electronics in Agriculture}, vol.~24, no.~3, pp.~131--151, 1999.
+
+  \bibitem{uci}
+  UCI Machine Learning Repository, ``Covertype,'' \url{https://archive.ics.uci.edu/dataset/31/covertype}.
+
+  \bibitem{sklearn}
+  F.~Pedregosa et al., ``Scikit-learn: Machine learning in Python,'' \textit{Journal of Machine Learning Research}, vol.~12, pp.~2825--2830, 2011.
+
+  \bibitem{tsne}
+  L.~van der Maaten and G.~Hinton, ``Visualizing data using t-SNE,'' \textit{Journal of Machine Learning Research}, vol.~9, pp.~2579--2605, 2008.
+\end{thebibliography}
+}
+
+\section*{Credit and GenAI Use}
+
+{\small
+\textbf{Group member contributions.}
+\begin{itemize}[leftmargin=*,itemsep=1pt,topsep=3pt]
+  \item \textbf{Zeyun DU}: data preprocessing, visualization, clustering, model evaluation, code implementation, and figure generation.
+  \item \textbf{Zixiang QIN}: feature importance, model selection, calibration, robustness, and subgroup diagnostics.
+  \item \textbf{Chunfeng GAO}: computational optimization, report preparation, result checking, and final editing.
+\end{itemize}
+
+\textbf{GenAI Tools Usage:}
+\begin{itemize}[leftmargin=*,itemsep=1pt,topsep=3pt]
+    \item OpenAI Codex was used to draft, refactor, and validate the analysis workflow and report (approximately 30\% of the code and 20\% of the report writing).
+    \item Doubao was used to polish and refine the report writing (approximately 10\% of the report writing).
+\end{itemize}
+
+\end{document}

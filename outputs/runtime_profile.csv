@@ -1,0 +1,7 @@
+stage,seconds,cache_status
+data_read_downcast,0.876,computed
+descriptive_outputs,0.998,computed
+computational_cost_outputs,0.206,computed
+t-SNE,0.002,cache_hit
+clustering,6.893,computed
+modeling,135.249,computed
