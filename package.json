@@ -1,0 +1,13 @@
+{
+  "scripts": {
+    "build:slides": "node slides_covertype.js"
+  },
+  "dependencies": {
+    "fontkit": "2.0.4",
+    "linebreak": "1.1.0",
+    "mathjax-full": "3.2.2",
+    "pptxgenjs": "3.12.0",
+    "prismjs": "1.30.0",
+    "skia-canvas": "2.0.2"
+  }
+}

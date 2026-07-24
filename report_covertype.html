@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>DSAA2011 Covertype Project Report</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    span.underline{text-decoration: underline;}
+    div.column{display: inline-block; vertical-align: top; width: 50%;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+  </style>
+  <link rel="stylesheet" href="report_style.css" />
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">DSAA2011 Covertype Project Report</h1>
+<p class="date">2026 Spring</p>
+</header>
+<h1 id="introduction">Introduction</h1>
+<p>This project analyzes the UCI <strong>Covertype</strong> dataset, which contains 581,012 forest observations, 54 cartographic features, and a seven-class forest cover target. The largest class is 2 (Lodgepole Pine, 48.8%), while the smallest class is 4 (Cottonwood/Willow, 0.5%), so macro-averaged metrics are more informative than accuracy alone.</p>
+<p>The main result is that natural clusters do not align strongly with the seven cover types, but supervised tree ensembles perform well. On a stratified 120,000-row modeling sample, the best test model is <strong>Random Forest</strong>, with accuracy=0.902, macro-F1=0.845, and macro one-vs-rest AUC=0.991.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Cover_Type</th>
+<th>Cover_Type_Name</th>
+<th>count</th>
+<th>proportion</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td>Spruce/Fir</td>
+<td>211,840</td>
+<td>36.5%</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td>Lodgepole Pine</td>
+<td>283,301</td>
+<td>48.8%</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td>Ponderosa Pine</td>
+<td>35,754</td>
+<td>6.2%</td>
+</tr>
+<tr class="even">
+<td>4</td>
+<td>Cottonwood/Willow</td>
+<td>2,747</td>
+<td>0.5%</td>
+</tr>
+<tr class="odd">
+<td>5</td>
+<td>Aspen</td>
+<td>9,493</td>
+<td>1.6%</td>
+</tr>
+<tr class="even">
+<td>6</td>
+<td>Douglas-fir</td>
+<td>17,367</td>
+<td>3.0%</td>
+</tr>
+<tr class="odd">
+<td>7</td>
+<td>Krummholz</td>
+<td>20,510</td>
+<td>3.5%</td>
+</tr>
+</tbody>
+</table>
+<h1 id="data-preprocessing">1. Data Preprocessing</h1>
+<p>The raw UCI file is a numeric, comma-separated table without headers. The preparation script preserves the original <code>data/covtype.data.gz</code>, assigns the official feature names, and writes <code>data/covertype.csv.gz</code>. There are no missing values in the prepared data (maximum missing ratio=0.000). The first 10 variables are continuous terrain measurements, followed by 4 wilderness-area indicators and 40 soil-type indicators. For linear models and distance-based methods, the continuous variables are median-imputed and standardized, while binary indicators are imputed by their mode and kept as indicators. Tree-based models use the same feature set without scaling.</p>
+<figure>
+<img src="figures/target_distribution.png" style="width:5.6in" alt="" /><figcaption>Target distribution</figcaption>
+</figure>
+<h1 id="data-visualization">2. Data Visualization</h1>
+<p>t-SNE is applied to a stratified 6,000-row sample after standardization and PCA compression to 30 dimensions. The embedding shows partially separated regions for high-elevation classes such as Spruce/Fir and Krummholz, while Spruce/Fir and Lodgepole Pine overlap heavily. Rare classes are visible in local pockets but do not form clean global islands, which suggests that cover type is shaped by interacting terrain features rather than a single low-dimensional boundary.</p>
+<figure>
+<img src="figures/tsne_target.png" style="width:5.7in" alt="" /><figcaption>t-SNE projection</figcaption>
+</figure>
+<h1 id="clustering-analysis">3. Clustering Analysis</h1>
+<p>MiniBatchKMeans and Ward hierarchical clustering are evaluated on stratified samples using silhouette, Calinski-Harabasz, and adjusted Rand index against the true cover labels. Both algorithms select k=2 by silhouette, but their ARI values are close to zero. This means the strongest unsupervised split is not the same as the seven ecological labels. MiniBatchKMeans is used instead of ordinary K-Means because it has the same interpretation but scales better to larger samples; Ward is kept as a small-sample dendrogram-based structural check.</p>
+<table>
+<thead>
+<tr class="header">
+<th>algorithm</th>
+<th>k</th>
+<th>silhouette</th>
+<th>calinski_harabasz</th>
+<th>ARI_vs_Target</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>MiniBatchKMeans</td>
+<td>2</td>
+<td>0.191</td>
+<td>1340.066</td>
+<td>0.003</td>
+</tr>
+<tr class="even">
+<td>Agglomerative Ward</td>
+<td>2</td>
+<td>0.153</td>
+<td>406.143</td>
+<td>0.004</td>
+</tr>
+</tbody>
+</table>
+<figure>
+<img src="figures/kmeans_elbow_silhouette.png" style="width:5.4in" alt="" /><figcaption>MiniBatchKMeans selection</figcaption>
+</figure>
+<figure>
+<img src="figures/clustering_tsne.png" style="width:5.7in" alt="" /><figcaption>Cluster comparison</figcaption>
+</figure>
+<h1 id="prediction-training-and-testing">4. Prediction: Training and Testing</h1>
+<p>The supervised target is the seven-class <code>Cover_Type</code>. The project uses a stratified 120,000-row modeling sample to keep validation reproducible and computationally reasonable while preserving class proportions. A 70%/30% train-test split gives 84,000 training rows and 36,000 test rows. Logistic regression is a simple linear baseline with class weighting, and a depth-limited decision tree is a nonlinear baseline. Both are also evaluated on the full 581,012-row dataset after training.</p>
+<table>
+<thead>
+<tr class="header">
+<th>model</th>
+<th>split</th>
+<th>accuracy</th>
+<th>f1_macro</th>
+<th>AUC_ovr_macro</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Logistic Regression</td>
+<td>train</td>
+<td>0.594</td>
+<td>0.473</td>
+<td>0.923</td>
+</tr>
+<tr class="even">
+<td>Logistic Regression</td>
+<td>test</td>
+<td>0.593</td>
+<td>0.471</td>
+<td>0.923</td>
+</tr>
+<tr class="odd">
+<td>Logistic Regression</td>
+<td>full</td>
+<td>0.593</td>
+<td>0.472</td>
+<td>0.923</td>
+</tr>
+<tr class="even">
+<td>Decision Tree</td>
+<td>train</td>
+<td>0.826</td>
+<td>0.727</td>
+<td>0.985</td>
+</tr>
+<tr class="odd">
+<td>Decision Tree</td>
+<td>test</td>
+<td>0.775</td>
+<td>0.663</td>
+<td>0.942</td>
+</tr>
+<tr class="even">
+<td>Decision Tree</td>
+<td>full</td>
+<td>0.782</td>
+<td>0.671</td>
+<td>0.949</td>
+</tr>
+</tbody>
+</table>
+<figure>
+<img src="figures/confusion_logistic_regression.png" style="width:6in" alt="" /><figcaption>Logistic regression confusion matrices</figcaption>
+</figure>
+<figure>
+<img src="figures/confusion_decision_tree.png" style="width:6in" alt="" /><figcaption>Decision tree confusion matrices</figcaption>
+</figure>
+<h1 id="evaluation-and-model-choice">5. Evaluation and Model Choice</h1>
+<p>The simple logistic model has high macro AUC but weak macro-F1 because its linear boundary struggles with minority classes. The decision tree improves recall and F1 but overfits relative to the test set. The open-ended comparison adds Random Forest and HistGradientBoosting. Random Forest is the best test model, with accuracy=0.902, macro-F1=0.845, and macro AUC=0.991.</p>
+<table>
+<thead>
+<tr class="header">
+<th>model</th>
+<th>accuracy</th>
+<th>precision_macro</th>
+<th>recall_macro</th>
+<th>f1_macro</th>
+<th>AUC_ovr_macro</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Logistic Regression</td>
+<td>0.593</td>
+<td>0.447</td>
+<td>0.690</td>
+<td>0.471</td>
+<td>0.923</td>
+</tr>
+<tr class="even">
+<td>Decision Tree</td>
+<td>0.775</td>
+<td>0.596</td>
+<td>0.816</td>
+<td>0.663</td>
+<td>0.942</td>
+</tr>
+<tr class="odd">
+<td>Random Forest</td>
+<td>0.902</td>
+<td>0.853</td>
+<td>0.840</td>
+<td>0.845</td>
+<td>0.991</td>
+</tr>
+<tr class="even">
+<td>HistGradientBoosting</td>
+<td>0.869</td>
+<td>0.866</td>
+<td>0.806</td>
+<td>0.831</td>
+<td>0.985</td>
+</tr>
+</tbody>
+</table>
+<p>Cross-validation on a separate 36,000-row stratified sample confirms the same ranking.</p>
+<table>
+<thead>
+<tr class="header">
+<th>model</th>
+<th>accuracy_mean</th>
+<th>f1_macro_mean</th>
+<th>AUC_ovr_macro_mean</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Random Forest</td>
+<td>0.844</td>
+<td>0.755</td>
+<td>0.978</td>
+</tr>
+<tr class="even">
+<td>HistGradientBoosting</td>
+<td>0.826</td>
+<td>0.739</td>
+<td>0.973</td>
+</tr>
+<tr class="odd">
+<td>Decision Tree</td>
+<td>0.693</td>
+<td>0.569</td>
+<td>0.907</td>
+</tr>
+<tr class="even">
+<td>Logistic Regression</td>
+<td>0.598</td>
+<td>0.496</td>
+<td>0.925</td>
+</tr>
+</tbody>
+</table>
+<figure>
+<img src="figures/model_comparison_f1_auc.png" style="width:5.7in" alt="" /><figcaption>Model comparison</figcaption>
+</figure>
+<figure>
+<img src="figures/roc_ovr_models.png" style="width:5.3in" alt="" /><figcaption>ROC curves</figcaption>
+</figure>
+<h1 id="open-ended-exploration">6. Open-Ended Exploration</h1>
+<h2 id="feature-importance">6.1 Feature Importance</h2>
+<p>Random Forest impurity importance ranks <strong>Elevation</strong> as the dominant feature, followed by road/fire/hydrology distance variables and hillshade. Permutation importance for the best model agrees that the model relies most on terrain and distance variables rather than only on one-hot soil or wilderness indicators.</p>
+<table>
+<thead>
+<tr class="header">
+<th>feature</th>
+<th>importance</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Elevation</td>
+<td>0.235</td>
+</tr>
+<tr class="even">
+<td>Horizontal_Distance_To_Roadways</td>
+<td>0.099</td>
+</tr>
+<tr class="odd">
+<td>Horizontal_Distance_To_Fire_Points</td>
+<td>0.077</td>
+</tr>
+<tr class="even">
+<td>Horizontal_Distance_To_Hydrology</td>
+<td>0.062</td>
+</tr>
+<tr class="odd">
+<td>Vertical_Distance_To_Hydrology</td>
+<td>0.050</td>
+</tr>
+<tr class="even">
+<td>Hillshade_9am</td>
+<td>0.049</td>
+</tr>
+<tr class="odd">
+<td>Aspect</td>
+<td>0.044</td>
+</tr>
+<tr class="even">
+<td>Hillshade_3pm</td>
+<td>0.042</td>
+</tr>
+<tr class="odd">
+<td>Wilderness_Area_4</td>
+<td>0.042</td>
+</tr>
+<tr class="even">
+<td>Hillshade_Noon</td>
+<td>0.040</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr class="header">
+<th>feature</th>
+<th>importance_mean_f1_drop</th>
+<th>importance_std</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Elevation</td>
+<td>0.396</td>
+<td>0.008</td>
+</tr>
+<tr class="even">
+<td>Horizontal_Distance_To_Roadways</td>
+<td>0.181</td>
+<td>0.008</td>
+</tr>
+<tr class="odd">
+<td>Horizontal_Distance_To_Fire_Points</td>
+<td>0.132</td>
+<td>0.005</td>
+</tr>
+<tr class="even">
+<td>Horizontal_Distance_To_Hydrology</td>
+<td>0.066</td>
+<td>0.007</td>
+</tr>
+<tr class="odd">
+<td>Wilderness_Area_1</td>
+<td>0.049</td>
+<td>0.005</td>
+</tr>
+<tr class="even">
+<td>Vertical_Distance_To_Hydrology</td>
+<td>0.044</td>
+<td>0.004</td>
+</tr>
+<tr class="odd">
+<td>Hillshade_9am</td>
+<td>0.033</td>
+<td>0.007</td>
+</tr>
+<tr class="even">
+<td>Hillshade_3pm</td>
+<td>0.030</td>
+<td>0.006</td>
+</tr>
+</tbody>
+</table>
+<figure>
+<img src="figures/feature_importance_top15.png" style="width:5.4in" alt="" /><figcaption>Feature importance</figcaption>
+</figure>
+<h2 id="feature-group-ablation">6.2 Feature Group Ablation</h2>
+<p>Ablation with HistGradientBoosting shows that topographic variables alone are already strong, but adding soil indicators nearly recovers the all-feature model. Wilderness indicators alone are weak. This supports the interpretation that cover type is primarily driven by elevation, terrain geometry, hydrology/road/fire distances, and finer soil context.</p>
+<table>
+<thead>
+<tr class="header">
+<th>experiment</th>
+<th>n_features</th>
+<th>accuracy</th>
+<th>f1_macro</th>
+<th>AUC_ovr_macro</th>
+<th>f1_macro_drop_vs_all</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>All features</td>
+<td>54</td>
+<td>0.857</td>
+<td>0.815</td>
+<td>0.983</td>
+<td>0.000</td>
+</tr>
+<tr class="even">
+<td>Topographic + soil</td>
+<td>50</td>
+<td>0.850</td>
+<td>0.807</td>
+<td>0.981</td>
+<td>0.008</td>
+</tr>
+<tr class="odd">
+<td>Topographic + wilderness</td>
+<td>14</td>
+<td>0.837</td>
+<td>0.784</td>
+<td>0.973</td>
+<td>0.031</td>
+</tr>
+<tr class="even">
+<td>Topographic only</td>
+<td>10</td>
+<td>0.820</td>
+<td>0.764</td>
+<td>0.973</td>
+<td>0.051</td>
+</tr>
+<tr class="odd">
+<td>Soil only</td>
+<td>40</td>
+<td>0.618</td>
+<td>0.279</td>
+<td>0.873</td>
+<td>0.536</td>
+</tr>
+<tr class="even">
+<td>Wilderness only</td>
+<td>4</td>
+<td>0.535</td>
+<td>0.203</td>
+<td>0.741</td>
+<td>0.612</td>
+</tr>
+</tbody>
+</table>
+<figure>
+<img src="figures/feature_group_ablation.png" style="width:5.7in" alt="" /><figcaption>Feature group ablation</figcaption>
+</figure>
+<h2 id="calibration-terrain-robustness-and-error-cases">6.3 Calibration, Terrain Robustness, and Error Cases</h2>
+<p>Calibration is measured with top-label confidence bins. HistGradientBoosting has the lowest expected calibration error, while Random Forest has the best accuracy and F1 but is under-confident on average: its mean confidence is below observed accuracy. This is acceptable for ranking and classification, but probability interpretation should use calibration checks.</p>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>model</th>
+<th>multiclass_brier</th>
+<th>expected_calibration_error</th>
+<th>mean_confidence</th>
+<th>observed_accuracy</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>HistGradientBoosting</td>
+<td>0.194</td>
+<td>0.047</td>
+<td>0.822</td>
+<td>0.869</td>
+</tr>
+<tr class="even">
+<td>Logistic Regression</td>
+<td>0.546</td>
+<td>0.066</td>
+<td>0.655</td>
+<td>0.593</td>
+</tr>
+<tr class="odd">
+<td>Decision Tree</td>
+<td>0.324</td>
+<td>0.104</td>
+<td>0.880</td>
+<td>0.775</td>
+</tr>
+<tr class="even">
+<td>Random Forest</td>
+<td>0.178</td>
+<td>0.128</td>
+<td>0.775</td>
+<td>0.902</td>
+</tr>
+</tbody>
+</table>
+<figure>
+<img src="figures/calibration_reliability.png" style="width:5in" alt="" /><figcaption>Calibration curves</figcaption>
+</figure>
+<p>The best model performs better in the highest elevation band than in lower bands, indicating that high-elevation classes are easier to separate. Error analysis also shows that incorrect predictions have much lower average top-class confidence than correct predictions, so confidence is useful for triaging uncertain cases.</p>
+<table>
+<thead>
+<tr class="header">
+<th>elevation_band</th>
+<th>n</th>
+<th>accuracy</th>
+<th>f1_macro</th>
+<th>dominant_true_class_name</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>(1886.999, 2753.0]</td>
+<td>7217</td>
+<td>0.874</td>
+<td>0.783</td>
+<td>Lodgepole Pine</td>
+</tr>
+<tr class="even">
+<td>(2753.0, 2939.0]</td>
+<td>7238</td>
+<td>0.894</td>
+<td>0.773</td>
+<td>Lodgepole Pine</td>
+</tr>
+<tr class="odd">
+<td>(2939.0, 3058.0]</td>
+<td>7164</td>
+<td>0.893</td>
+<td>0.822</td>
+<td>Lodgepole Pine</td>
+</tr>
+<tr class="even">
+<td>(3058.0, 3198.0]</td>
+<td>7194</td>
+<td>0.914</td>
+<td>0.823</td>
+<td>Spruce/Fir</td>
+</tr>
+<tr class="odd">
+<td>(3198.0, 3856.0]</td>
+<td>7187</td>
+<td>0.938</td>
+<td>0.922</td>
+<td>Spruce/Fir</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr class="header">
+<th>correct</th>
+<th>count</th>
+<th>mean</th>
+<th>median</th>
+<th>min</th>
+<th>max</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>False</td>
+<td>3515</td>
+<td>0.595</td>
+<td>0.576</td>
+<td>0.254</td>
+<td>0.965</td>
+</tr>
+<tr class="even">
+<td>True</td>
+<td>32485</td>
+<td>0.794</td>
+<td>0.821</td>
+<td>0.290</td>
+<td>0.999</td>
+</tr>
+</tbody>
+</table>
+<figure>
+<img src="figures/elevation_band_accuracy.png" style="width:5.2in" alt="" /><figcaption>Elevation band accuracy</figcaption>
+</figure>
+<figure>
+<img src="figures/error_confidence.png" style="width:5in" alt="" /><figcaption>Confidence by correctness</figcaption>
+</figure>
+<p>Class-level recall confirms that minority and ecologically adjacent classes are harder than the two dominant classes.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Cover_Type</th>
+<th>Cover_Type_Name</th>
+<th>support</th>
+<th>precision</th>
+<th>recall</th>
+<th>f1</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td>Spruce/Fir</td>
+<td>13126</td>
+<td>0.919</td>
+<td>0.885</td>
+<td>0.901</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td>Lodgepole Pine</td>
+<td>17554</td>
+<td>0.907</td>
+<td>0.930</td>
+<td>0.918</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td>Ponderosa Pine</td>
+<td>2215</td>
+<td>0.852</td>
+<td>0.924</td>
+<td>0.887</td>
+</tr>
+<tr class="even">
+<td>4</td>
+<td>Cottonwood/Willow</td>
+<td>170</td>
+<td>0.782</td>
+<td>0.824</td>
+<td>0.802</td>
+</tr>
+<tr class="odd">
+<td>5</td>
+<td>Aspen</td>
+<td>588</td>
+<td>0.792</td>
+<td>0.639</td>
+<td>0.707</td>
+</tr>
+<tr class="even">
+<td>6</td>
+<td>Douglas-fir</td>
+<td>1076</td>
+<td>0.796</td>
+<td>0.778</td>
+<td>0.787</td>
+</tr>
+<tr class="odd">
+<td>7</td>
+<td>Krummholz</td>
+<td>1271</td>
+<td>0.920</td>
+<td>0.901</td>
+<td>0.911</td>
+</tr>
+</tbody>
+</table>
+<figure>
+<img src="figures/class_recall_comparison.png" style="width:5.4in" alt="" /><figcaption>Class recall</figcaption>
+</figure>
+<h2 id="computational-cost-and-scalable-optimization">6.4 Computational Cost and Scalable Optimization</h2>
+<p>Covertype is large enough that model training is feasible, but several standard analysis steps become expensive if applied naively to all 581,012 rows. Full-data t-SNE, full-data Ward clustering, exhaustive grid search, and full permutation importance are the main computational risks. The optimized workflow now implements dtype downcasting, manifest-based caches for heavy stages, stratified samples for expensive visualization/validation, PCA before distance-based analysis, MiniBatchKMeans for scalable clustering, and parallel tree ensembles for prediction. The naive all-int64 memory estimate is 243.8 MB; the optimized dataframe uses about 47.1 MB, a 80.7% reduction.</p>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>module</th>
+<th>scope</th>
+<th>cost_score</th>
+<th>optimization</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Data read and preprocessing</td>
+<td>full 581,012 rows x 54 features</td>
+<td>1</td>
+<td>implemented dtype downcast from naive 243.8 MB to 47.1 MB</td>
+</tr>
+<tr class="even">
+<td>Standardization and PCA</td>
+<td>6,000-120,000 stratified rows</td>
+<td>2</td>
+<td>apply PCA before t-SNE and clustering</td>
+</tr>
+<tr class="odd">
+<td>t-SNE visualization</td>
+<td>6,000 stratified rows after PCA</td>
+<td>9</td>
+<td>use stratified sample plus PCA; UMAP is a possible faster substitute</td>
+</tr>
+<tr class="even">
+<td>MiniBatchKMeans clustering</td>
+<td>6,000 stratified rows after PCA</td>
+<td>3</td>
+<td>implemented MiniBatchKMeans with fixed batch size for scalable clustering</td>
+</tr>
+<tr class="odd">
+<td>Ward hierarchical clustering</td>
+<td>2,500 stratified rows</td>
+<td>10</td>
+<td>restrict to small sample or replace with BIRCH/MiniBatchKMeans</td>
+</tr>
+<tr class="even">
+<td>Supervised model training</td>
+<td>120,000 stratified rows, 70/30 split</td>
+<td>6</td>
+<td>use n_jobs=-1, bounded tree complexity, and efficient boosting</td>
+</tr>
+<tr class="odd">
+<td>Cross-validation</td>
+<td>36,000 stratified rows x 3 folds</td>
+<td>7</td>
+<td>use 3-fold sample CV; tune on sample, then train final model</td>
+</tr>
+<tr class="even">
+<td>Permutation importance</td>
+<td>8,000 test rows x 54 features x 5 repeats</td>
+<td>8</td>
+<td>combine cheap impurity importance with sampled permutation checks</td>
+</tr>
+</tbody>
+</table>
+<figure>
+<img src="figures/computational_cost_tiers.png" style="width:5.6in" alt="" /><figcaption>Computational cost tiers</figcaption>
+</figure>
+<p>The run profile records whether each stage was computed or recovered from cache.</p>
+<table>
+<thead>
+<tr class="header">
+<th>stage</th>
+<th>seconds</th>
+<th>cache_status</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>data_read_downcast</td>
+<td>0.89</td>
+<td>computed</td>
+</tr>
+<tr class="even">
+<td>descriptive_outputs</td>
+<td>0.69</td>
+<td>computed</td>
+</tr>
+<tr class="odd">
+<td>computational_cost_outputs</td>
+<td>0.20</td>
+<td>computed</td>
+</tr>
+<tr class="even">
+<td>t-SNE</td>
+<td>0.00</td>
+<td>cache_hit</td>
+</tr>
+<tr class="odd">
+<td>clustering</td>
+<td>0.00</td>
+<td>cache_hit</td>
+</tr>
+<tr class="even">
+<td>modeling</td>
+<td>0.01</td>
+<td>cache_hit</td>
+</tr>
+</tbody>
+</table>
+<p>The optimization directions can be grouped as follows.</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>category</th>
+<th>action</th>
+<th>benefit</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Data types and I/O</td>
+<td>Implemented uint8 indicators/target, float32 continuous variables, and cached prepared files</td>
+<td>Lower memory pressure and faster repeated runs</td>
+</tr>
+<tr class="even">
+<td>Sampling strategy</td>
+<td>Use stratified samples for t-SNE, Ward clustering, CV, and permutation importance</td>
+<td>Stable estimates without quadratic or repeated full-data costs</td>
+</tr>
+<tr class="odd">
+<td>Dimensionality reduction</td>
+<td>Run PCA to 20-30 components before t-SNE and clustering</td>
+<td>Faster visualizations and more stable distance-based structure</td>
+</tr>
+<tr class="even">
+<td>Scalable clustering</td>
+<td>Implemented MiniBatchKMeans for scalable clustering; kept Ward for small structural samples</td>
+<td>Maintains clustering analysis without infeasible memory growth</td>
+</tr>
+<tr class="odd">
+<td>Model training</td>
+<td>Use parallel Random Forest, HistGradientBoosting, class weights, and bounded tree complexity</td>
+<td>High accuracy and macro-F1 with controlled runtime</td>
+</tr>
+<tr class="even">
+<td>Validation and tuning</td>
+<td>Use 3-fold CV, RandomizedSearchCV or halving search on samples, then train final parameters once</td>
+<td>Comparable model ranking at a fraction of full-grid cost</td>
+</tr>
+<tr class="odd">
+<td>Interpretability</td>
+<td>Use tree impurity importance first; run permutation importance on a small held-out sample</td>
+<td>Good feature diagnostics with bounded prediction calls</td>
+</tr>
+<tr class="even">
+<td>Caching and reproducibility</td>
+<td>Implemented manifest-based caches for t-SNE, clustering, and modeling outputs</td>
+<td>Fast report/PPT rebuilds and auditable intermediate artifacts</td>
+</tr>
+</tbody>
+</table>
+<h1 id="conclusion">Conclusion</h1>
+<p>The Covertype dataset has strong class imbalance and substantial overlap between ecological classes. Unsupervised clustering reveals broad terrain structure but does not recover the true seven labels. Supervised tree ensembles are much more effective: Random Forest gives the best overall classification performance, while HistGradientBoosting offers better calibration. Elevation is the most important single feature, but soil indicators and distance-to-road/fire/hydrology variables add meaningful predictive value. Computationally, the safest strategy is to combine full-data descriptive analysis, stratified samples for expensive diagnostics, PCA for distance-based methods, and parallel ensemble models. For practical use, the model should report macro metrics, class-level recall, calibration, terrain-band performance, and the sampling assumptions behind expensive steps.</p>
+<h1 id="references">References</h1>
+<ol type="1">
+<li>UCI Machine Learning Repository. Covertype dataset. https://archive.ics.uci.edu/ml/datasets/covertype</li>
+<li>Blackard, Jock A. and Dean, Denis J. Comparative Accuracies of Artificial Neural Networks and Discriminant Analysis in Predicting Forest Cover Types from Cartographic Variables. Computers and Electronics in Agriculture, 1999.</li>
+<li>Pedregosa et al. Scikit-learn: Machine Learning in Python. Journal of Machine Learning Research, 2011.</li>
+<li>van der Maaten and Hinton. Visualizing Data using t-SNE. Journal of Machine Learning Research, 2008.</li>
+</ol>
+<h1 id="credit">Credit</h1>
+<p>Code, figures, and report text were generated reproducibly in this repository. Group-member contribution details should be filled in by the project team before submission. OpenAI Codex was used to draft and validate the analysis workflow and report.</p>
+</body>
+</html>

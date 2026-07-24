@@ -1,0 +1,5 @@
+risk_bucket,count
+low_<0.25,284
+very_high_>=0.75,185
+medium_0.25-0.50,177
+high_0.50-0.75,148

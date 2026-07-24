@@ -1,0 +1,29 @@
+Wilderness_Area,Cover_Type,count,Wilderness_Area_Name,Cover_Type_Name,within_area_proportion
+1,1,105717,Rawah,Spruce/Fir,0.4053628123130723
+2,1,18595,Neota,Spruce/Fir,0.6222393253915138
+3,1,87528,Comanche Peak,Spruce/Fir,0.34546344389889644
+4,1,0,Cache la Poudre,Spruce/Fir,0.0
+1,2,146197,Rawah,Lodgepole Pine,0.5605799168698906
+2,2,8985,Neota,Lodgepole Pine,0.3006625619060367
+3,2,125093,Comanche Peak,Lodgepole Pine,0.4937283907737484
+4,2,3026,Cache la Poudre,Lodgepole Pine,0.08185457693140014
+1,3,0,Rawah,Ponderosa Pine,0.0
+2,3,0,Neota,Ponderosa Pine,0.0
+3,3,14300,Comanche Peak,Ponderosa Pine,0.05644053614562448
+4,3,21454,Cache la Poudre,Ponderosa Pine,0.5803397533001515
+1,4,0,Rawah,Cottonwood/Willow,0.0
+2,4,0,Neota,Cottonwood/Willow,0.0
+3,4,0,Comanche Peak,Cottonwood/Willow,0.0
+4,4,2747,Cache la Poudre,Cottonwood/Willow,0.07430750919714348
+1,5,3781,Rawah,Aspen,0.014497921747266062
+2,5,0,Neota,Aspen,0.0
+3,5,5712,Comanche Peak,Aspen,0.022544639333133356
+4,5,0,Cache la Poudre,Aspen,0.0
+1,6,0,Rawah,Douglas-fir,0.0
+2,6,0,Neota,Douglas-fir,0.0
+3,6,7626,Comanche Peak,Douglas-fir,0.03009898801724002
+4,6,9741,Cache la Poudre,Douglas-fir,0.26349816057130493
+1,7,5101,Rawah,Krummholz,0.01955934906977101
+2,7,2304,Neota,Krummholz,0.07709811270244947
+3,7,13105,Comanche Peak,Krummholz,0.05172400183135726
+4,7,0,Cache la Poudre,Krummholz,0.0

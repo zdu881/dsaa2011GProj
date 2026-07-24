@@ -1,0 +1,393 @@
+model,split,actual,actual_name,predicted,predicted_name,count
+Logistic Regression,train,1,Spruce/Fir,1,Spruce/Fir,20291
+Logistic Regression,train,1,Spruce/Fir,2,Lodgepole Pine,5367
+Logistic Regression,train,1,Spruce/Fir,3,Ponderosa Pine,11
+Logistic Regression,train,1,Spruce/Fir,4,Cottonwood/Willow,0
+Logistic Regression,train,1,Spruce/Fir,5,Aspen,1100
+Logistic Regression,train,1,Spruce/Fir,6,Douglas-fir,150
+Logistic Regression,train,1,Spruce/Fir,7,Krummholz,3708
+Logistic Regression,train,2,Lodgepole Pine,1,Spruce/Fir,9390
+Logistic Regression,train,2,Lodgepole Pine,2,Lodgepole Pine,21599
+Logistic Regression,train,2,Lodgepole Pine,3,Ponderosa Pine,702
+Logistic Regression,train,2,Lodgepole Pine,4,Cottonwood/Willow,100
+Logistic Regression,train,2,Lodgepole Pine,5,Aspen,7317
+Logistic Regression,train,2,Lodgepole Pine,6,Douglas-fir,1433
+Logistic Regression,train,2,Lodgepole Pine,7,Krummholz,417
+Logistic Regression,train,3,Ponderosa Pine,1,Spruce/Fir,0
+Logistic Regression,train,3,Ponderosa Pine,2,Lodgepole Pine,39
+Logistic Regression,train,3,Ponderosa Pine,3,Ponderosa Pine,2565
+Logistic Regression,train,3,Ponderosa Pine,4,Cottonwood/Willow,1320
+Logistic Regression,train,3,Ponderosa Pine,5,Aspen,283
+Logistic Regression,train,3,Ponderosa Pine,6,Douglas-fir,962
+Logistic Regression,train,3,Ponderosa Pine,7,Krummholz,0
+Logistic Regression,train,4,Cottonwood/Willow,1,Spruce/Fir,0
+Logistic Regression,train,4,Cottonwood/Willow,2,Lodgepole Pine,0
+Logistic Regression,train,4,Cottonwood/Willow,3,Ponderosa Pine,13
+Logistic Regression,train,4,Cottonwood/Willow,4,Cottonwood/Willow,381
+Logistic Regression,train,4,Cottonwood/Willow,5,Aspen,0
+Logistic Regression,train,4,Cottonwood/Willow,6,Douglas-fir,3
+Logistic Regression,train,4,Cottonwood/Willow,7,Krummholz,0
+Logistic Regression,train,5,Aspen,1,Spruce/Fir,9
+Logistic Regression,train,5,Aspen,2,Lodgepole Pine,210
+Logistic Regression,train,5,Aspen,3,Ponderosa Pine,30
+Logistic Regression,train,5,Aspen,4,Cottonwood/Willow,0
+Logistic Regression,train,5,Aspen,5,Aspen,1073
+Logistic Regression,train,5,Aspen,6,Douglas-fir,51
+Logistic Regression,train,5,Aspen,7,Krummholz,0
+Logistic Regression,train,6,Douglas-fir,1,Spruce/Fir,0
+Logistic Regression,train,6,Douglas-fir,2,Lodgepole Pine,6
+Logistic Regression,train,6,Douglas-fir,3,Ponderosa Pine,498
+Logistic Regression,train,6,Douglas-fir,4,Cottonwood/Willow,505
+Logistic Regression,train,6,Douglas-fir,5,Aspen,116
+Logistic Regression,train,6,Douglas-fir,6,Douglas-fir,1386
+Logistic Regression,train,6,Douglas-fir,7,Krummholz,0
+Logistic Regression,train,7,Krummholz,1,Spruce/Fir,333
+Logistic Regression,train,7,Krummholz,2,Lodgepole Pine,0
+Logistic Regression,train,7,Krummholz,3,Ponderosa Pine,3
+Logistic Regression,train,7,Krummholz,4,Cottonwood/Willow,0
+Logistic Regression,train,7,Krummholz,5,Aspen,9
+Logistic Regression,train,7,Krummholz,6,Douglas-fir,0
+Logistic Regression,train,7,Krummholz,7,Krummholz,2620
+Logistic Regression,test,1,Spruce/Fir,1,Spruce/Fir,8594
+Logistic Regression,test,1,Spruce/Fir,2,Lodgepole Pine,2307
+Logistic Regression,test,1,Spruce/Fir,3,Ponderosa Pine,5
+Logistic Regression,test,1,Spruce/Fir,4,Cottonwood/Willow,0
+Logistic Regression,test,1,Spruce/Fir,5,Aspen,477
+Logistic Regression,test,1,Spruce/Fir,6,Douglas-fir,74
+Logistic Regression,test,1,Spruce/Fir,7,Krummholz,1669
+Logistic Regression,test,2,Lodgepole Pine,1,Spruce/Fir,3973
+Logistic Regression,test,2,Lodgepole Pine,2,Lodgepole Pine,9312
+Logistic Regression,test,2,Lodgepole Pine,3,Ponderosa Pine,320
+Logistic Regression,test,2,Lodgepole Pine,4,Cottonwood/Willow,37
+Logistic Regression,test,2,Lodgepole Pine,5,Aspen,3137
+Logistic Regression,test,2,Lodgepole Pine,6,Douglas-fir,617
+Logistic Regression,test,2,Lodgepole Pine,7,Krummholz,158
+Logistic Regression,test,3,Ponderosa Pine,1,Spruce/Fir,0
+Logistic Regression,test,3,Ponderosa Pine,2,Lodgepole Pine,13
+Logistic Regression,test,3,Ponderosa Pine,3,Ponderosa Pine,1096
+Logistic Regression,test,3,Ponderosa Pine,4,Cottonwood/Willow,557
+Logistic Regression,test,3,Ponderosa Pine,5,Aspen,118
+Logistic Regression,test,3,Ponderosa Pine,6,Douglas-fir,431
+Logistic Regression,test,3,Ponderosa Pine,7,Krummholz,0
+Logistic Regression,test,4,Cottonwood/Willow,1,Spruce/Fir,0
+Logistic Regression,test,4,Cottonwood/Willow,2,Lodgepole Pine,0
+Logistic Regression,test,4,Cottonwood/Willow,3,Ponderosa Pine,4
+Logistic Regression,test,4,Cottonwood/Willow,4,Cottonwood/Willow,162
+Logistic Regression,test,4,Cottonwood/Willow,5,Aspen,0
+Logistic Regression,test,4,Cottonwood/Willow,6,Douglas-fir,4
+Logistic Regression,test,4,Cottonwood/Willow,7,Krummholz,0
+Logistic Regression,test,5,Aspen,1,Spruce/Fir,1
+Logistic Regression,test,5,Aspen,2,Lodgepole Pine,92
+Logistic Regression,test,5,Aspen,3,Ponderosa Pine,26
+Logistic Regression,test,5,Aspen,4,Cottonwood/Willow,0
+Logistic Regression,test,5,Aspen,5,Aspen,443
+Logistic Regression,test,5,Aspen,6,Douglas-fir,26
+Logistic Regression,test,5,Aspen,7,Krummholz,0
+Logistic Regression,test,6,Douglas-fir,1,Spruce/Fir,0
+Logistic Regression,test,6,Douglas-fir,2,Lodgepole Pine,9
+Logistic Regression,test,6,Douglas-fir,3,Ponderosa Pine,191
+Logistic Regression,test,6,Douglas-fir,4,Cottonwood/Willow,222
+Logistic Regression,test,6,Douglas-fir,5,Aspen,53
+Logistic Regression,test,6,Douglas-fir,6,Douglas-fir,601
+Logistic Regression,test,6,Douglas-fir,7,Krummholz,0
+Logistic Regression,test,7,Krummholz,1,Spruce/Fir,139
+Logistic Regression,test,7,Krummholz,2,Lodgepole Pine,0
+Logistic Regression,test,7,Krummholz,3,Ponderosa Pine,1
+Logistic Regression,test,7,Krummholz,4,Cottonwood/Willow,0
+Logistic Regression,test,7,Krummholz,5,Aspen,2
+Logistic Regression,test,7,Krummholz,6,Douglas-fir,0
+Logistic Regression,test,7,Krummholz,7,Krummholz,1129
+Logistic Regression,full,1,Spruce/Fir,1,Spruce/Fir,139333
+Logistic Regression,full,1,Spruce/Fir,2,Lodgepole Pine,37468
+Logistic Regression,full,1,Spruce/Fir,3,Ponderosa Pine,88
+Logistic Regression,full,1,Spruce/Fir,4,Cottonwood/Willow,0
+Logistic Regression,full,1,Spruce/Fir,5,Aspen,7526
+Logistic Regression,full,1,Spruce/Fir,6,Douglas-fir,1050
+Logistic Regression,full,1,Spruce/Fir,7,Krummholz,26375
+Logistic Regression,full,2,Lodgepole Pine,1,Spruce/Fir,64229
+Logistic Regression,full,2,Lodgepole Pine,2,Lodgepole Pine,149684
+Logistic Regression,full,2,Lodgepole Pine,3,Ponderosa Pine,4836
+Logistic Regression,full,2,Lodgepole Pine,4,Cottonwood/Willow,643
+Logistic Regression,full,2,Lodgepole Pine,5,Aspen,51146
+Logistic Regression,full,2,Lodgepole Pine,6,Douglas-fir,10039
+Logistic Regression,full,2,Lodgepole Pine,7,Krummholz,2724
+Logistic Regression,full,3,Ponderosa Pine,1,Spruce/Fir,0
+Logistic Regression,full,3,Ponderosa Pine,2,Lodgepole Pine,225
+Logistic Regression,full,3,Ponderosa Pine,3,Ponderosa Pine,17719
+Logistic Regression,full,3,Ponderosa Pine,4,Cottonwood/Willow,9244
+Logistic Regression,full,3,Ponderosa Pine,5,Aspen,1913
+Logistic Regression,full,3,Ponderosa Pine,6,Douglas-fir,6653
+Logistic Regression,full,3,Ponderosa Pine,7,Krummholz,0
+Logistic Regression,full,4,Cottonwood/Willow,1,Spruce/Fir,0
+Logistic Regression,full,4,Cottonwood/Willow,2,Lodgepole Pine,0
+Logistic Regression,full,4,Cottonwood/Willow,3,Ponderosa Pine,113
+Logistic Regression,full,4,Cottonwood/Willow,4,Cottonwood/Willow,2594
+Logistic Regression,full,4,Cottonwood/Willow,5,Aspen,0
+Logistic Regression,full,4,Cottonwood/Willow,6,Douglas-fir,40
+Logistic Regression,full,4,Cottonwood/Willow,7,Krummholz,0
+Logistic Regression,full,5,Aspen,1,Spruce/Fir,57
+Logistic Regression,full,5,Aspen,2,Lodgepole Pine,1466
+Logistic Regression,full,5,Aspen,3,Ponderosa Pine,257
+Logistic Regression,full,5,Aspen,4,Cottonwood/Willow,0
+Logistic Regression,full,5,Aspen,5,Aspen,7354
+Logistic Regression,full,5,Aspen,6,Douglas-fir,359
+Logistic Regression,full,5,Aspen,7,Krummholz,0
+Logistic Regression,full,6,Douglas-fir,1,Spruce/Fir,0
+Logistic Regression,full,6,Douglas-fir,2,Lodgepole Pine,96
+Logistic Regression,full,6,Douglas-fir,3,Ponderosa Pine,3314
+Logistic Regression,full,6,Douglas-fir,4,Cottonwood/Willow,3538
+Logistic Regression,full,6,Douglas-fir,5,Aspen,789
+Logistic Regression,full,6,Douglas-fir,6,Douglas-fir,9630
+Logistic Regression,full,6,Douglas-fir,7,Krummholz,0
+Logistic Regression,full,7,Krummholz,1,Spruce/Fir,2105
+Logistic Regression,full,7,Krummholz,2,Lodgepole Pine,1
+Logistic Regression,full,7,Krummholz,3,Ponderosa Pine,21
+Logistic Regression,full,7,Krummholz,4,Cottonwood/Willow,0
+Logistic Regression,full,7,Krummholz,5,Aspen,62
+Logistic Regression,full,7,Krummholz,6,Douglas-fir,0
+Logistic Regression,full,7,Krummholz,7,Krummholz,18321
+Decision Tree,train,1,Spruce/Fir,1,Spruce/Fir,26080
+Decision Tree,train,1,Spruce/Fir,2,Lodgepole Pine,2767
+Decision Tree,train,1,Spruce/Fir,3,Ponderosa Pine,29
+Decision Tree,train,1,Spruce/Fir,4,Cottonwood/Willow,0
+Decision Tree,train,1,Spruce/Fir,5,Aspen,422
+Decision Tree,train,1,Spruce/Fir,6,Douglas-fir,73
+Decision Tree,train,1,Spruce/Fir,7,Krummholz,1256
+Decision Tree,train,2,Lodgepole Pine,1,Spruce/Fir,4085
+Decision Tree,train,2,Lodgepole Pine,2,Lodgepole Pine,32205
+Decision Tree,train,2,Lodgepole Pine,3,Ponderosa Pine,954
+Decision Tree,train,2,Lodgepole Pine,4,Cottonwood/Willow,30
+Decision Tree,train,2,Lodgepole Pine,5,Aspen,2200
+Decision Tree,train,2,Lodgepole Pine,6,Douglas-fir,1071
+Decision Tree,train,2,Lodgepole Pine,7,Krummholz,413
+Decision Tree,train,3,Ponderosa Pine,1,Spruce/Fir,1
+Decision Tree,train,3,Ponderosa Pine,2,Lodgepole Pine,15
+Decision Tree,train,3,Ponderosa Pine,3,Ponderosa Pine,4169
+Decision Tree,train,3,Ponderosa Pine,4,Cottonwood/Willow,319
+Decision Tree,train,3,Ponderosa Pine,5,Aspen,46
+Decision Tree,train,3,Ponderosa Pine,6,Douglas-fir,619
+Decision Tree,train,3,Ponderosa Pine,7,Krummholz,0
+Decision Tree,train,4,Cottonwood/Willow,1,Spruce/Fir,0
+Decision Tree,train,4,Cottonwood/Willow,2,Lodgepole Pine,0
+Decision Tree,train,4,Cottonwood/Willow,3,Ponderosa Pine,1
+Decision Tree,train,4,Cottonwood/Willow,4,Cottonwood/Willow,394
+Decision Tree,train,4,Cottonwood/Willow,5,Aspen,0
+Decision Tree,train,4,Cottonwood/Willow,6,Douglas-fir,2
+Decision Tree,train,4,Cottonwood/Willow,7,Krummholz,0
+Decision Tree,train,5,Aspen,1,Spruce/Fir,0
+Decision Tree,train,5,Aspen,2,Lodgepole Pine,1
+Decision Tree,train,5,Aspen,3,Ponderosa Pine,4
+Decision Tree,train,5,Aspen,4,Cottonwood/Willow,0
+Decision Tree,train,5,Aspen,5,Aspen,1364
+Decision Tree,train,5,Aspen,6,Douglas-fir,4
+Decision Tree,train,5,Aspen,7,Krummholz,0
+Decision Tree,train,6,Douglas-fir,1,Spruce/Fir,0
+Decision Tree,train,6,Douglas-fir,2,Lodgepole Pine,9
+Decision Tree,train,6,Douglas-fir,3,Ponderosa Pine,185
+Decision Tree,train,6,Douglas-fir,4,Cottonwood/Willow,100
+Decision Tree,train,6,Douglas-fir,5,Aspen,19
+Decision Tree,train,6,Douglas-fir,6,Douglas-fir,2198
+Decision Tree,train,6,Douglas-fir,7,Krummholz,0
+Decision Tree,train,7,Krummholz,1,Spruce/Fir,27
+Decision Tree,train,7,Krummholz,2,Lodgepole Pine,2
+Decision Tree,train,7,Krummholz,3,Ponderosa Pine,0
+Decision Tree,train,7,Krummholz,4,Cottonwood/Willow,0
+Decision Tree,train,7,Krummholz,5,Aspen,1
+Decision Tree,train,7,Krummholz,6,Douglas-fir,0
+Decision Tree,train,7,Krummholz,7,Krummholz,2935
+Decision Tree,test,1,Spruce/Fir,1,Spruce/Fir,10515
+Decision Tree,test,1,Spruce/Fir,2,Lodgepole Pine,1725
+Decision Tree,test,1,Spruce/Fir,3,Ponderosa Pine,16
+Decision Tree,test,1,Spruce/Fir,4,Cottonwood/Willow,0
+Decision Tree,test,1,Spruce/Fir,5,Aspen,184
+Decision Tree,test,1,Spruce/Fir,6,Douglas-fir,44
+Decision Tree,test,1,Spruce/Fir,7,Krummholz,642
+Decision Tree,test,2,Lodgepole Pine,1,Spruce/Fir,2371
+Decision Tree,test,2,Lodgepole Pine,2,Lodgepole Pine,13123
+Decision Tree,test,2,Lodgepole Pine,3,Ponderosa Pine,433
+Decision Tree,test,2,Lodgepole Pine,4,Cottonwood/Willow,15
+Decision Tree,test,2,Lodgepole Pine,5,Aspen,996
+Decision Tree,test,2,Lodgepole Pine,6,Douglas-fir,454
+Decision Tree,test,2,Lodgepole Pine,7,Krummholz,162
+Decision Tree,test,3,Ponderosa Pine,1,Spruce/Fir,0
+Decision Tree,test,3,Ponderosa Pine,2,Lodgepole Pine,20
+Decision Tree,test,3,Ponderosa Pine,3,Ponderosa Pine,1634
+Decision Tree,test,3,Ponderosa Pine,4,Cottonwood/Willow,144
+Decision Tree,test,3,Ponderosa Pine,5,Aspen,35
+Decision Tree,test,3,Ponderosa Pine,6,Douglas-fir,382
+Decision Tree,test,3,Ponderosa Pine,7,Krummholz,0
+Decision Tree,test,4,Cottonwood/Willow,1,Spruce/Fir,0
+Decision Tree,test,4,Cottonwood/Willow,2,Lodgepole Pine,0
+Decision Tree,test,4,Cottonwood/Willow,3,Ponderosa Pine,8
+Decision Tree,test,4,Cottonwood/Willow,4,Cottonwood/Willow,155
+Decision Tree,test,4,Cottonwood/Willow,5,Aspen,0
+Decision Tree,test,4,Cottonwood/Willow,6,Douglas-fir,7
+Decision Tree,test,4,Cottonwood/Willow,7,Krummholz,0
+Decision Tree,test,5,Aspen,1,Spruce/Fir,10
+Decision Tree,test,5,Aspen,2,Lodgepole Pine,73
+Decision Tree,test,5,Aspen,3,Ponderosa Pine,18
+Decision Tree,test,5,Aspen,4,Cottonwood/Willow,0
+Decision Tree,test,5,Aspen,5,Aspen,478
+Decision Tree,test,5,Aspen,6,Douglas-fir,9
+Decision Tree,test,5,Aspen,7,Krummholz,0
+Decision Tree,test,6,Douglas-fir,1,Spruce/Fir,4
+Decision Tree,test,6,Douglas-fir,2,Lodgepole Pine,22
+Decision Tree,test,6,Douglas-fir,3,Ponderosa Pine,165
+Decision Tree,test,6,Douglas-fir,4,Cottonwood/Willow,61
+Decision Tree,test,6,Douglas-fir,5,Aspen,10
+Decision Tree,test,6,Douglas-fir,6,Douglas-fir,814
+Decision Tree,test,6,Douglas-fir,7,Krummholz,0
+Decision Tree,test,7,Krummholz,1,Spruce/Fir,66
+Decision Tree,test,7,Krummholz,2,Lodgepole Pine,7
+Decision Tree,test,7,Krummholz,3,Ponderosa Pine,0
+Decision Tree,test,7,Krummholz,4,Cottonwood/Willow,0
+Decision Tree,test,7,Krummholz,5,Aspen,0
+Decision Tree,test,7,Krummholz,6,Douglas-fir,0
+Decision Tree,test,7,Krummholz,7,Krummholz,1198
+Decision Tree,full,1,Spruce/Fir,1,Spruce/Fir,170341
+Decision Tree,full,1,Spruce/Fir,2,Lodgepole Pine,27382
+Decision Tree,full,1,Spruce/Fir,3,Ponderosa Pine,245
+Decision Tree,full,1,Spruce/Fir,4,Cottonwood/Willow,0
+Decision Tree,full,1,Spruce/Fir,5,Aspen,2942
+Decision Tree,full,1,Spruce/Fir,6,Douglas-fir,709
+Decision Tree,full,1,Spruce/Fir,7,Krummholz,10221
+Decision Tree,full,2,Lodgepole Pine,1,Spruce/Fir,36319
+Decision Tree,full,2,Lodgepole Pine,2,Lodgepole Pine,213881
+Decision Tree,full,2,Lodgepole Pine,3,Ponderosa Pine,6459
+Decision Tree,full,2,Lodgepole Pine,4,Cottonwood/Willow,250
+Decision Tree,full,2,Lodgepole Pine,5,Aspen,16084
+Decision Tree,full,2,Lodgepole Pine,6,Douglas-fir,7515
+Decision Tree,full,2,Lodgepole Pine,7,Krummholz,2793
+Decision Tree,full,3,Ponderosa Pine,1,Spruce/Fir,6
+Decision Tree,full,3,Ponderosa Pine,2,Lodgepole Pine,311
+Decision Tree,full,3,Ponderosa Pine,3,Ponderosa Pine,26805
+Decision Tree,full,3,Ponderosa Pine,4,Cottonwood/Willow,2538
+Decision Tree,full,3,Ponderosa Pine,5,Aspen,462
+Decision Tree,full,3,Ponderosa Pine,6,Douglas-fir,5632
+Decision Tree,full,3,Ponderosa Pine,7,Krummholz,0
+Decision Tree,full,4,Cottonwood/Willow,1,Spruce/Fir,0
+Decision Tree,full,4,Cottonwood/Willow,2,Lodgepole Pine,0
+Decision Tree,full,4,Cottonwood/Willow,3,Ponderosa Pine,134
+Decision Tree,full,4,Cottonwood/Willow,4,Cottonwood/Willow,2517
+Decision Tree,full,4,Cottonwood/Willow,5,Aspen,0
+Decision Tree,full,4,Cottonwood/Willow,6,Douglas-fir,96
+Decision Tree,full,4,Cottonwood/Willow,7,Krummholz,0
+Decision Tree,full,5,Aspen,1,Spruce/Fir,115
+Decision Tree,full,5,Aspen,2,Lodgepole Pine,945
+Decision Tree,full,5,Aspen,3,Ponderosa Pine,188
+Decision Tree,full,5,Aspen,4,Cottonwood/Willow,0
+Decision Tree,full,5,Aspen,5,Aspen,8085
+Decision Tree,full,5,Aspen,6,Douglas-fir,147
+Decision Tree,full,5,Aspen,7,Krummholz,13
+Decision Tree,full,6,Douglas-fir,1,Spruce/Fir,38
+Decision Tree,full,6,Douglas-fir,2,Lodgepole Pine,378
+Decision Tree,full,6,Douglas-fir,3,Ponderosa Pine,2406
+Decision Tree,full,6,Douglas-fir,4,Cottonwood/Willow,859
+Decision Tree,full,6,Douglas-fir,5,Aspen,168
+Decision Tree,full,6,Douglas-fir,6,Douglas-fir,13518
+Decision Tree,full,6,Douglas-fir,7,Krummholz,0
+Decision Tree,full,7,Krummholz,1,Spruce/Fir,1107
+Decision Tree,full,7,Krummholz,2,Lodgepole Pine,102
+Decision Tree,full,7,Krummholz,3,Ponderosa Pine,0
+Decision Tree,full,7,Krummholz,4,Cottonwood/Willow,0
+Decision Tree,full,7,Krummholz,5,Aspen,22
+Decision Tree,full,7,Krummholz,6,Douglas-fir,0
+Decision Tree,full,7,Krummholz,7,Krummholz,19279
+Random Forest,test,1,Spruce/Fir,1,Spruce/Fir,11612
+Random Forest,test,1,Spruce/Fir,2,Lodgepole Pine,1395
+Random Forest,test,1,Spruce/Fir,3,Ponderosa Pine,6
+Random Forest,test,1,Spruce/Fir,4,Cottonwood/Willow,0
+Random Forest,test,1,Spruce/Fir,5,Aspen,17
+Random Forest,test,1,Spruce/Fir,6,Douglas-fir,8
+Random Forest,test,1,Spruce/Fir,7,Krummholz,88
+Random Forest,test,2,Lodgepole Pine,1,Spruce/Fir,898
+Random Forest,test,2,Lodgepole Pine,2,Lodgepole Pine,16328
+Random Forest,test,2,Lodgepole Pine,3,Ponderosa Pine,148
+Random Forest,test,2,Lodgepole Pine,4,Cottonwood/Willow,0
+Random Forest,test,2,Lodgepole Pine,5,Aspen,77
+Random Forest,test,2,Lodgepole Pine,6,Douglas-fir,92
+Random Forest,test,2,Lodgepole Pine,7,Krummholz,11
+Random Forest,test,3,Ponderosa Pine,1,Spruce/Fir,0
+Random Forest,test,3,Ponderosa Pine,2,Lodgepole Pine,40
+Random Forest,test,3,Ponderosa Pine,3,Ponderosa Pine,2047
+Random Forest,test,3,Ponderosa Pine,4,Cottonwood/Willow,23
+Random Forest,test,3,Ponderosa Pine,5,Aspen,5
+Random Forest,test,3,Ponderosa Pine,6,Douglas-fir,100
+Random Forest,test,3,Ponderosa Pine,7,Krummholz,0
+Random Forest,test,4,Cottonwood/Willow,1,Spruce/Fir,0
+Random Forest,test,4,Cottonwood/Willow,2,Lodgepole Pine,0
+Random Forest,test,4,Cottonwood/Willow,3,Ponderosa Pine,24
+Random Forest,test,4,Cottonwood/Willow,4,Cottonwood/Willow,140
+Random Forest,test,4,Cottonwood/Willow,5,Aspen,0
+Random Forest,test,4,Cottonwood/Willow,6,Douglas-fir,6
+Random Forest,test,4,Cottonwood/Willow,7,Krummholz,0
+Random Forest,test,5,Aspen,1,Spruce/Fir,7
+Random Forest,test,5,Aspen,2,Lodgepole Pine,179
+Random Forest,test,5,Aspen,3,Ponderosa Pine,18
+Random Forest,test,5,Aspen,4,Cottonwood/Willow,0
+Random Forest,test,5,Aspen,5,Aspen,376
+Random Forest,test,5,Aspen,6,Douglas-fir,8
+Random Forest,test,5,Aspen,7,Krummholz,0
+Random Forest,test,6,Douglas-fir,1,Spruce/Fir,0
+Random Forest,test,6,Douglas-fir,2,Lodgepole Pine,63
+Random Forest,test,6,Douglas-fir,3,Ponderosa Pine,160
+Random Forest,test,6,Douglas-fir,4,Cottonwood/Willow,16
+Random Forest,test,6,Douglas-fir,5,Aspen,0
+Random Forest,test,6,Douglas-fir,6,Douglas-fir,837
+Random Forest,test,6,Douglas-fir,7,Krummholz,0
+Random Forest,test,7,Krummholz,1,Spruce/Fir,122
+Random Forest,test,7,Krummholz,2,Lodgepole Pine,4
+Random Forest,test,7,Krummholz,3,Ponderosa Pine,0
+Random Forest,test,7,Krummholz,4,Cottonwood/Willow,0
+Random Forest,test,7,Krummholz,5,Aspen,0
+Random Forest,test,7,Krummholz,6,Douglas-fir,0
+Random Forest,test,7,Krummholz,7,Krummholz,1145
+HistGradientBoosting,test,1,Spruce/Fir,1,Spruce/Fir,10966
+HistGradientBoosting,test,1,Spruce/Fir,2,Lodgepole Pine,2076
+HistGradientBoosting,test,1,Spruce/Fir,3,Ponderosa Pine,0
+HistGradientBoosting,test,1,Spruce/Fir,4,Cottonwood/Willow,0
+HistGradientBoosting,test,1,Spruce/Fir,5,Aspen,10
+HistGradientBoosting,test,1,Spruce/Fir,6,Douglas-fir,2
+HistGradientBoosting,test,1,Spruce/Fir,7,Krummholz,72
+HistGradientBoosting,test,2,Lodgepole Pine,1,Spruce/Fir,1482
+HistGradientBoosting,test,2,Lodgepole Pine,2,Lodgepole Pine,15873
+HistGradientBoosting,test,2,Lodgepole Pine,3,Ponderosa Pine,82
+HistGradientBoosting,test,2,Lodgepole Pine,4,Cottonwood/Willow,0
+HistGradientBoosting,test,2,Lodgepole Pine,5,Aspen,56
+HistGradientBoosting,test,2,Lodgepole Pine,6,Douglas-fir,52
+HistGradientBoosting,test,2,Lodgepole Pine,7,Krummholz,9
+HistGradientBoosting,test,3,Ponderosa Pine,1,Spruce/Fir,0
+HistGradientBoosting,test,3,Ponderosa Pine,2,Lodgepole Pine,75
+HistGradientBoosting,test,3,Ponderosa Pine,3,Ponderosa Pine,2032
+HistGradientBoosting,test,3,Ponderosa Pine,4,Cottonwood/Willow,16
+HistGradientBoosting,test,3,Ponderosa Pine,5,Aspen,2
+HistGradientBoosting,test,3,Ponderosa Pine,6,Douglas-fir,90
+HistGradientBoosting,test,3,Ponderosa Pine,7,Krummholz,0
+HistGradientBoosting,test,4,Cottonwood/Willow,1,Spruce/Fir,0
+HistGradientBoosting,test,4,Cottonwood/Willow,2,Lodgepole Pine,0
+HistGradientBoosting,test,4,Cottonwood/Willow,3,Ponderosa Pine,28
+HistGradientBoosting,test,4,Cottonwood/Willow,4,Cottonwood/Willow,135
+HistGradientBoosting,test,4,Cottonwood/Willow,5,Aspen,0
+HistGradientBoosting,test,4,Cottonwood/Willow,6,Douglas-fir,7
+HistGradientBoosting,test,4,Cottonwood/Willow,7,Krummholz,0
+HistGradientBoosting,test,5,Aspen,1,Spruce/Fir,5
+HistGradientBoosting,test,5,Aspen,2,Lodgepole Pine,233
+HistGradientBoosting,test,5,Aspen,3,Ponderosa Pine,22
+HistGradientBoosting,test,5,Aspen,4,Cottonwood/Willow,0
+HistGradientBoosting,test,5,Aspen,5,Aspen,324
+HistGradientBoosting,test,5,Aspen,6,Douglas-fir,4
+HistGradientBoosting,test,5,Aspen,7,Krummholz,0
+HistGradientBoosting,test,6,Douglas-fir,1,Spruce/Fir,3
+HistGradientBoosting,test,6,Douglas-fir,2,Lodgepole Pine,98
+HistGradientBoosting,test,6,Douglas-fir,3,Ponderosa Pine,153
+HistGradientBoosting,test,6,Douglas-fir,4,Cottonwood/Willow,7
+HistGradientBoosting,test,6,Douglas-fir,5,Aspen,3
+HistGradientBoosting,test,6,Douglas-fir,6,Douglas-fir,812
+HistGradientBoosting,test,6,Douglas-fir,7,Krummholz,0
+HistGradientBoosting,test,7,Krummholz,1,Spruce/Fir,139
+HistGradientBoosting,test,7,Krummholz,2,Lodgepole Pine,5
+HistGradientBoosting,test,7,Krummholz,3,Ponderosa Pine,0
+HistGradientBoosting,test,7,Krummholz,4,Cottonwood/Willow,0
+HistGradientBoosting,test,7,Krummholz,5,Aspen,0
+HistGradientBoosting,test,7,Krummholz,6,Douglas-fir,0
+HistGradientBoosting,test,7,Krummholz,7,Krummholz,1127

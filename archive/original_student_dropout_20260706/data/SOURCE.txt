@@ -1,0 +1,4 @@
+Dataset: Predict Students' Dropout and Academic Success
+Source: https://archive.ics.uci.edu/static/public/697/predict+students+dropout+and+academic+success.zip
+Original file: data.csv in the downloaded UCI zip archive
+Local normalized file: ../student_dropout.csv

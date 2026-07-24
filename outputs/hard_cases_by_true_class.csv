@@ -1,0 +1,26 @@
+Cover_Type,Cover_Type_Name,prediction,prediction_name,count
+1,Spruce/Fir,2,Lodgepole Pine,1395
+2,Lodgepole Pine,1,Spruce/Fir,898
+5,Aspen,2,Lodgepole Pine,179
+6,Douglas-fir,3,Ponderosa Pine,160
+2,Lodgepole Pine,3,Ponderosa Pine,148
+7,Krummholz,1,Spruce/Fir,122
+3,Ponderosa Pine,6,Douglas-fir,100
+2,Lodgepole Pine,6,Douglas-fir,92
+1,Spruce/Fir,7,Krummholz,88
+2,Lodgepole Pine,5,Aspen,77
+6,Douglas-fir,2,Lodgepole Pine,63
+3,Ponderosa Pine,2,Lodgepole Pine,40
+4,Cottonwood/Willow,3,Ponderosa Pine,24
+3,Ponderosa Pine,4,Cottonwood/Willow,23
+5,Aspen,3,Ponderosa Pine,18
+1,Spruce/Fir,5,Aspen,17
+6,Douglas-fir,4,Cottonwood/Willow,16
+2,Lodgepole Pine,7,Krummholz,11
+1,Spruce/Fir,6,Douglas-fir,8
+5,Aspen,6,Douglas-fir,8
+5,Aspen,1,Spruce/Fir,7
+1,Spruce/Fir,3,Ponderosa Pine,6
+4,Cottonwood/Willow,6,Douglas-fir,6
+3,Ponderosa Pine,5,Aspen,5
+7,Krummholz,2,Lodgepole Pine,4

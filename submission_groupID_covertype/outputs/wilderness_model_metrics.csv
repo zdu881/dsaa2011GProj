@@ -1,0 +1,5 @@
+model,Wilderness_Area,Wilderness_Area_Name,n,test_share,accuracy,f1_macro,dominant_true_class,dominant_true_class_name
+Random Forest,1,Rawah,16228,0.4507777777777778,0.9052871579985211,0.8461577722713781,2,Lodgepole Pine
+Random Forest,2,Neota,1831,0.050861111111111114,0.9437465865647188,0.9432956198273601,1,Spruce/Fir
+Random Forest,3,Comanche Peak,15657,0.4349166666666667,0.9033020374273488,0.8480105612965292,2,Lodgepole Pine
+Random Forest,4,Cache la Poudre,2284,0.06344444444444444,0.8419439579684763,0.7711232237368179,3,Ponderosa Pine
