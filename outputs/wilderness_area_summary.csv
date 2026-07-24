@@ -1,5 +1,0 @@
-Wilderness_Area,Wilderness_Area_Name,count,proportion,dominant_cover_type,dominant_cover_type_name,dominant_cover_type_share,normalized_cover_entropy
-1,Rawah,260796,0.4488650836815763,2,Lodgepole Pine,0.5605799168698906,0.42592867537880247
-2,Neota,29884,0.051434393781884025,1,Spruce/Fir,0.6222393253915138,0.4389272982743424
-3,Comanche Peak,253364,0.4360736094951567,2,Lodgepole Pine,0.4937283907737484,0.6279943305632171
-4,Cache la Poudre,36968,0.06362691304138296,3,Ponderosa Pine,0.5803397533001515,0.547429668090135
