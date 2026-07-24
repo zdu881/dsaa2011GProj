@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "build:slides": "node slides_covertype.js"
+  },
   "dependencies": {
     "fontkit": "2.0.4",
     "linebreak": "1.1.0",
