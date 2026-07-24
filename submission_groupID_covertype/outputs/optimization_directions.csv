@@ -1,0 +1,9 @@
+category,goal,recommended_actions,expected_benefit
+Data types and I/O,Reduce memory and repeated file-read overhead,"Implemented uint8 indicators/target, float32 continuous variables, and cached prepared files",Lower memory pressure and faster repeated runs
+Sampling strategy,Make expensive algorithms feasible while preserving class balance,"Use stratified samples for t-SNE, Ward clustering, CV, and permutation importance",Stable estimates without quadratic or repeated full-data costs
+Dimensionality reduction,Reduce distance-computation cost and high-dimensional noise,Run PCA to 20-30 components before t-SNE and clustering,Faster visualizations and more stable distance-based structure
+Scalable clustering,Avoid O(n^2) algorithms on large n,Implemented MiniBatchKMeans for scalable clustering; kept Ward for small structural samples,Maintains clustering analysis without infeasible memory growth
+Model training,Improve predictive performance under CPU limits,"Use parallel Random Forest, HistGradientBoosting, class weights, and bounded tree complexity",High accuracy and macro-F1 with controlled runtime
+Validation and tuning,Prevent cross-validation and grid search from dominating runtime,"Use 3-fold CV, RandomizedSearchCV or halving search on samples, then train final parameters once",Comparable model ranking at a fraction of full-grid cost
+Interpretability,Keep explanations useful without exhaustive perturbation,Use tree impurity importance first; run permutation importance on a small held-out sample,Good feature diagnostics with bounded prediction calls
+Caching and reproducibility,Avoid rerunning deterministic expensive steps during report generation,"Implemented manifest-based caches for t-SNE, clustering, and modeling outputs",Fast report/PPT rebuilds and auditable intermediate artifacts
