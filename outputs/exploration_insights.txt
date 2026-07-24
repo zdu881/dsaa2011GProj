@@ -35,9 +35,22 @@
        - Sigmoid calibration slightly improved (Brier: 0.0215)
        - Calibration varies by class
     
-    8. Ensemble Methods:
-       - Voting classifier combined RF, GB, and DT
-       - Achieved F1 = 0.8845 (strong but below RF)
+    8. Confidence vs Errors:
+       - Correct predictions have significantly higher confidence than errors
+       - Confidence can be used to flag uncertain observations for review
+    
+    9. Elevation Band Analysis:
+       - Performance improves substantially at higher elevations
+       - Lower elevation regions are more difficult to classify
+    
+    10. Wilderness Area Analysis:
+        - Cache la Poudre is the most difficult wilderness area
+        - Comanche Peak has the highest class diversity (entropy: 0.628)
+        - Model performance varies significantly across geographic regions
+    
+    11. Ensemble Methods:
+        - Voting classifier combined RF, GB, and DT
+        - Achieved F1 = 0.8845 (strong but below RF)
     
     Recommendations:
     ---------------
@@ -46,4 +59,6 @@
     3. Feature selection reduces complexity with better performance
     4. Hyperparameter tuning is not always beneficial
     5. Ensembles are effective but computationally expensive
+    6. Monitor performance on Cache la Poudre and lower-elevation regions
+    7. Use confidence thresholds for selective review of uncertain predictions
     
