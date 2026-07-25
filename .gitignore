@@ -4,3 +4,6 @@ zi1gPDNt
 *.aux
 *.log
 *.out
+.opencode/
+.work/
+need.md
