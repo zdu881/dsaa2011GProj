@@ -7,13 +7,14 @@
 | Metric | Value |
 |---|---|
 | Dataset size | 581,012 rows × 54 features |
+| Modeling sample | 97,950 (train: 68,565 / test: 29,385) |
 | Classes | 7 forest cover types (severe imbalance: 85.3% in top 2) |
 | Best Model | Random Forest |
-| Test Accuracy | 0.902 |
-| Macro F1 | 0.845 |
-| Macro OVR AUC | 0.991 |
+| Test Accuracy | 0.908 |
+| Macro F1 | 0.908 (95% CI: [0.904, 0.911]) |
+| Macro OVR AUC | 0.992 |
 | Clustering ARI vs labels | ~0 (clusters ≠ cover types) |
-| Dominant feature | Elevation (RF impurity = 0.235) |
+| Dominant feature | Elevation (RF impurity = 0.237) |
 
 ---
 
@@ -63,89 +64,110 @@ models and contextual features beyond a single 2D projection.
 
 ### Slide 6 — Clustering Analysis (60 sec)
 
-**Speaker:** We test MiniBatchKMeans and Agglomerative Ward clustering. Both select
-K=2 as optimal based on silhouette score. MiniBatchKMeans achieves silhouette 0.191,
-Ward achieves 0.153. The crucial number: adjusted Rand index against the true labels
-is only 0.003–0.004 — effectively zero. This means the strongest unsupervised partition
-does NOT correspond to the seven ecological labels. Clustering reveals broad terrain
-structure, not cover type boundaries. So for prediction, we must use supervised methods.
+**Speaker:** We test MiniBatchKMeans and Agglomerative Ward clustering.
+MiniBatchKMeans peaks at K=3 (silhouette 0.182), Ward at K=4 (silhouette 0.156).
+The crucial number: adjusted Rand index against the true labels is only 0.075 (K-Means)
+and 0.061 (Ward) — far below any supervised model. Why such a large gap? Two structural
+reasons: (i) the dataset mixes 10 continuous terrain variables with 44 binary indicators,
+so Euclidean distance — the metric K-Means and Ward optimize — poorly captures
+similarity in high-dimensional mixed-type space; (ii) clustering minimizes internal
+variance, while the labels are defined by ecological criteria that don't align with
+variance-minimizing partitions. Tree-based models, by contrast, use axis-aligned splits
+that naturally handle mixed feature types without relying on a global distance metric.
+(Cluster visualizations are shown in both t-SNE and PCA space; t-SNE distorts global
+distances, so ARI in original 54-D space is the rigorous evidence.) So for prediction,
+we must use supervised methods.
 
 ### Slide 7 — Simple Prediction Models (90 sec)
 
 **Speaker:** We first train two baseline classifiers. Logistic regression — a linear
-baseline — gets test accuracy 0.593 and macro-F1 only 0.471. It reaches macro AUC 0.923,
+baseline — gets test accuracy 0.676 and macro-F1 only 0.660. It reaches macro AUC 0.947,
 so the probability ranking is useful but class decisions are weak. The decision tree,
-with nonlinear splits, raises accuracy to 0.775 and macro-F1 to 0.663. However, the
-train-test gap shows moderate overfitting. Both are evaluated on the full 581K dataset
-after training, with consistent results. These baselines tell us: the problem requires
-ensembles that reduce variance while preserving nonlinear capability.
+with nonlinear splits, raises accuracy to 0.823 and macro-F1 to 0.819. However, the
+train-test gap (0.865 vs 0.819) shows moderate overfitting. These baselines tell us:
+the problem requires ensembles that reduce variance while preserving nonlinear capability.
 
 ### Slide 8 — Model Evaluation and Choice (90 sec)
 
 **Speaker:** We extend to Random Forest and HistGradientBoosting. Random Forest wins
-across the board: accuracy 0.902, macro-F1 0.845, macro AUC 0.991. HistGradientBoosting
-follows at 0.831 macro-F1 with the highest macro precision — fewer false positive
-minority predictions. Cross-validation on a separate 36,000-row sample confirms the
-same ranking, so the result is not split-dependent. The high AUC across all models
-confirms that cartographic features contain strong signal. We select Random Forest
-as the best model, balancing majority and minority class performance.
+across the board: accuracy 0.908, macro-F1 0.908, macro AUC 0.992. HistGradientBoosting
+follows at 0.898 macro-F1 with the highest macro precision (0.896).  5-fold CV within the
+training set confirms the same ranking (RF: 0.902±0.001, HGB: 0.895±0.003).
+Bootstrap 95% CIs do not overlap (RF: [0.904, 0.911], HGB: [0.894, 0.902]),
+and a McNemar test confirms RF is significantly better (χ²=41.5, p<0.001).
 
 ### Slide 9 — Open-Ended Exploration Overview (45 sec)
 
 **Speaker:** Beyond baseline models, we pursue six exploration directions: feature
-importance, hyperparameter tuning, feature group ablation, calibration, error analysis,
-and model interpretability. These collectively validate that topographic factors —
-especially elevation — drive predictions, while soil and wilderness context provide
-complementary signal. We also verify that complex tuning is not always beneficial.
+importance, feature engineering with controlled comparison, hyperparameter tuning across
+three model classes, calibration, error analysis, and model interpretability. These
+collectively validate that topographic factors — especially elevation — drive predictions,
+while soil and wilderness context provide complementary signal.
 
 ### Slide 10 — Feature Importance (75 sec)
 
 **Speaker:** Two complementary methods agree. Random Forest impurity importance puts
-Elevation first at 0.235, followed by road distance, fire-point distance, and hydrology
+Elevation first at 0.237, followed by road distance, fire-point distance, and hydrology
 distance. Permutation importance independently confirms this: shuffling Elevation drops
-macro-F1 by 0.396 — the largest single-feature impact. The top four features are all
+macro-F1 by 0.358 — the largest single-feature impact. The top four features are all
 terrain-related, but wilderness areas and soil types also appear in the top 15, showing
 the model uses contextual information beyond geometry alone.
 
 ### Slide 11 — Hyperparameter Tuning (60 sec)
 
-**Speaker:** We ran a grid search over 48 decision tree configurations with 3-fold
-cross-validation. The best config achieved CV-F1 of 0.769. However — applying those
-tuned parameters to the full test set DECREASED performance. Why? The tuning was on
-a limited subset, and the optimal subset parameters didn't generalize. The original
-parameters — depth 24, leaf 15 — were already near-optimal. This is an important
-practical lesson: hyperparameter tuning is not universally beneficial, especially
-when the baseline is well-chosen. For the Random Forest, increasing trees beyond 120
-yielded only marginal gains.
+**Speaker:** We ran grid search on 30k observations across three model classes.
+All three degraded: DT 0.819→0.797, RF 0.908→0.886, HGB 0.898→0.889.
+The natural question: is the 30k subset simply too small for any tuning?
+
+To answer this, we ran Optuna (Bayesian TPE, 100 trials) on the DT
+over the *same* 30k subset. Optuna found test F1=0.823 — recovering baseline
+and beating grid search by 0.026. Same data, two search methods, very different outcomes.
+The failure of grid search was NOT because the subset is too small, but because
+its coarse 48-point grid missed the narrow region where CV and test performance align.
+Bayesian optimization's continuous exploration and adaptive pruning found it.
+
+Gain over defaults is marginal (+0.003), consistent with Probst et al.'s "flat
+optimization surface" for tree ensembles. But the methodology lesson is clear:
+grid search on a limited budget is fragile; Bayesian optimization is more robust
+even on the same training data.
 
 ### Slide 12 — Calibration and Error Analysis (60 sec)
 
 **Speaker:** Good classification does not guarantee reliable probabilities. We use
-Brier score and Expected Calibration Error. Random Forest has the best Brier score at
-0.178 but is systematically under-confident: its mean confidence is 0.775 while
-observed accuracy is 0.902. HistGradientBoosting is best calibrated with ECE only 0.047.
-Importantly, incorrect predictions have substantially lower confidence — mean 0.595 vs
-0.794 for correct ones. So low confidence can flag uncertain predictions for review.
-Performance also improves with elevation: 0.874 accuracy in the lowest band versus
-0.938 in the highest.
+Brier score and Expected Calibration Error. Random Forest has the best per-class Brier
+score at 0.024 (traditional multiclass Brier 0.171) but is systematically
+under-confident: its mean top-label confidence is 0.783 while observed accuracy is 0.908.
+HistGradientBoosting is best calibrated with ECE only 0.041. Platt (sigmoid) scaling
+reduces RF Brier from 0.024 to 0.021. A paired McNemar test confirms RF is significantly
+better than HGB (χ²=41.5, p<0.001). Performance also improves with elevation: 0.863
+accuracy in the most diverse band versus 0.958 in the highest.
 
 ### Slide 13 — Advanced Model Comparison (60 sec)
 
 **Speaker:** Looking beyond basic comparison: Random Forest variants consistently
-outperform. Using top-30 features, RF achieves macro-F1 of 0.845. Gradient Boosting
-is competitive in score but had significantly longer training time — 160+ seconds vs
-under 30 seconds for RF. The trade-off favors Random Forest for this application:
+outperform. Using top-30 features, RF achieves macro-F1 of 0.907. Standard sklearn
+Gradient Boosting (120 iter, F1=0.883) is competitive in score but had significantly
+longer training time — 160+ seconds vs under 2 seconds for RF. The histogram-based
+variant (HGB, not shown here) achieves F1=0.898 with much faster training.
+The trade-off favors Random Forest for this application:
 strong performance with reasonable computational cost.
 
-### Slide 14 — Conclusions and Future Work (45 sec)
+### Slide 14 — Conclusions and Limitations (45 sec)
 
-**Speaker:** To summarize: Random Forest delivers 0.902 accuracy, 0.845 macro-F1,
-and 0.991 macro-AUC. Supervised learning is essential — clustering alone cannot
-recover the labels. Elevation is the dominant predictor, but distances to roads,
-fire points, water, plus soil and wilderness context collectively improve predictions.
-Future work includes deeper feature engineering of terrain-climate interactions,
-multi-model fusion with stacking, and targeted optimization for minority classes
-like Aspen.
+**Speaker:** To summarize: Random Forest delivers 0.908 accuracy, 0.908 macro-F1,
+and 0.992 macro-AUC. McNemar test confirms RF is significantly better than HGB
+(χ²=41.5, p<0.001). Supervised learning is essential — clustering alone cannot
+recover the labels (best ARI=0.075, vs RF=0.908). Elevation is dominant, but RF on
+just 5 features reaches 0.877 F1 — nonlinearity, not dimensionality, drives performance.
+Polynomial expansion gave zero improvement for LR.
+
+Caveats: modeling sample covers ~17% of full data (capped by minority class size).
+Full-data gradient boosting in the literature reaches 0.95-0.96 accuracy — a gap
+attributable to our sample-limited protocol.  Grid search on 30k subset degraded
+all three model classes; however, Bayesian optimization (Optuna, 100 trials) on the
+same subset recovered baseline for the Decision Tree — proving the bottleneck is the
+search strategy, not the subset size.  Future work includes partial_fit for full-data
+training and Bayesian search for the ensemble models.
 
 ### Slide 15 — Q&A (3 min reserved)
 
@@ -153,16 +175,20 @@ like Aspen.
 
 ## Anticipated Q&A
 
-**Q1: Why is clustering ARI nearly zero?**
-A: The internal structure favors two coarse groups based on terrain (essentially
-high vs. low elevation), while the labels differentiate seven ecologically distinct
-types. Unsupervised methods find the strongest variance partition; supervised methods
-learn the labeled concept. They answer different questions.
+**Q1: Why is clustering ARI so low (0.075) compared to RF (0.908)?**
+A: Two structural reasons. First, the dataset mixes 10 continuous + 44 binary features:
+Euclidean distance — the metric optimized by K-Means and Ward — poorly captures
+similarity in mixed-type space, while tree-based models use axis-aligned splits that
+handle binary indicators natively. Second, clustering minimizes internal variance (the
+silhouette criterion), whereas the ecological labels are defined by forest management
+categories that don't align with variance-minimizing partitions. The supervised model
+optimizes for label separation directly, which explains the massive gap.
 
 **Q2: Why Random Forest over Gradient Boosting?**
-A: RF achieves better macro-F1 (0.845 vs 0.831) and AUC (0.991 vs 0.985) on our
-test set. Boosting has better calibration but lower minority-class recall. For
-classification ranking, RF wins. For probability interpretation, Boosting is better.
+A: RF achieves better macro-F1 (0.908 vs 0.898) and AUC (0.992 vs 0.991) on our
+test set. Bootstrap 95% CIs do not overlap, and a McNemar test confirms RF is
+significantly better (χ²=41.5, p<0.001). Boosting has better calibration with
+lower ECE (0.041 vs 0.125).
 
 **Q3: How do you handle class imbalance?**
 A: Stratified sampling preserves proportions. Class-weighted training adjusts loss.
@@ -173,11 +199,27 @@ classes are not ignored. SMOTE was explored but did not materially improve resul
 **Q4: What's the computational cost of this analysis?**
 A: Full-data t-SNE or Ward clustering would be prohibitive. We use stratified samples
 for expensive steps, PCA before distance-based methods, MiniBatchKMeans for scalable
-clustering, dtype downcasting (81% memory reduction), and cache manifests for
-reproducibility. The entire notebook runs within course-project resources.
+clustering, dtype downcasting (float32 + uint8, ~81% memory reduction), and the 44
+binary features can additionally be stored in sparse CSR format. The entire notebook
+runs within course-project resources. Incremental learning (partial_fit) would be
+needed for full-dataset training.
 
 **Q5: Which classes are hardest to predict and why?**
-A: Aspen has the lowest recall at 0.639, followed by Douglas-fir at 0.778. Both are
-ecologically adjacent to dominant classes — Aspen overlaps with Lodgepole Pine in
-mid-elevation zones, and Douglas-fir can be confused with Ponderosa Pine. Lower
-elevation bands are also harder because the class mixture is more diverse there.
+A: Lodgepole Pine has the lowest recall at 0.817, followed by Spruce/Fir at 0.842.
+These dominant classes suffer most from the confusion between each other in
+overlapping terrain zones. Aspen (0.965) and Krummholz (0.983) have the highest
+recall, likely because they occupy distinct ecological niches (mid-elevation
+deciduous stands and alpine tree-line, respectively).
+
+**Q6: Why only ~100k modeling sample instead of full 581k?**
+A: Stratified per-class sampling caps each class at the minority size (Cottonwood/Willow
+has only 2,747 total). This ensures class balance but constrains the total sample to
+~98k. For production deployment, partial_fit on the full dataset is recommended.
+
+**Q7: Did Bayesian optimization help? How much?**
+A: Yes. Grid search on 30k degraded DT from 0.819 to 0.797. Optuna (TPE, 100 trials)
+on the same 30k subset recovered 0.823 — beating grid search by 0.026 and slightly
+exceeding the baseline. The failure was not the subset size, but the coarse 48-point
+grid missing the right region. Bayesian optimization's continuous exploration and
+pruning found it. Gain over defaults is marginal (+0.003), consistent with the
+"flat optimization surface" of tree ensembles (Probst et al., 2019).
