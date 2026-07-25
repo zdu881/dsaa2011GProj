@@ -1,9 +1,0 @@
-module,scope_used,complexity_driver,estimated_cost,relative_cost_score,optimization_decision
-Data read and preprocessing,"full 581,012 rows x 54 features",O(n x d),seconds; optimized dataframe memory about 47.1 MB,1,implemented dtype downcast from naive 243.8 MB to 47.1 MB
-Standardization and PCA,"6,000-120,000 stratified rows",O(n x d x components),seconds to tens of seconds,2,apply PCA before t-SNE and clustering
-t-SNE visualization,"6,000 stratified rows after PCA",high neighbor-search and iterative embedding cost,tens of seconds to minutes; full-data t-SNE is not practical,9,use stratified sample plus PCA; UMAP is a possible faster substitute
-MiniBatchKMeans clustering,"6,000 stratified rows after PCA",O(n x k x d x iterations),seconds to minutes depending on k search,3,implemented MiniBatchKMeans with fixed batch size for scalable clustering
-Ward hierarchical clustering,"2,500 stratified rows",O(n^2) memory and time,feasible only on small samples; full data is effectively infeasible,10,restrict to small sample or replace with BIRCH/MiniBatchKMeans
-Supervised model training,"120,000 stratified rows, 70/30 split",model cost x rows x features,minutes for tree ensembles on CPU,6,"use n_jobs=-1, bounded tree complexity, and efficient boosting"
-Cross-validation,"36,000 stratified rows x 3 folds",training cost multiplied by folds,minutes; full-data 5-fold CV would be much more expensive,7,"use 3-fold sample CV; tune on sample, then train final model"
-Permutation importance,"8,000 test rows x 54 features x 5 repeats",features x repeats x prediction cost,expensive but manageable on a small held-out sample,8,combine cheap impurity importance with sampled permutation checks
