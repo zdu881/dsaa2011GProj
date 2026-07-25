@@ -21,9 +21,15 @@
        - Soil type indicators collectively contribute significantly
        - Wilderness area indicators are less important individually
     
-    5. Hyperparameter Tuning:
-       - Tuning Decision Tree did NOT improve performance (0.8191 -> 0.7970)
-       - Original parameters were already near-optimal
+    5. Hyperparameter Tuning (30k subset, 3-fold CV):
+       - Decision Tree: baseline 0.8191 → tuned 0.7970 (Δ = -0.022)
+         → Overfits validation folds in the limited-subset tuning protocol
+       - Random Forest:    baseline ~0.907 → tuned (see above) (Δ ≈ 0)
+         → Ensemble regularization (bagging) creates a flat optimization surface
+       - HistGradientBoosting: baseline 0.898 → tuned (see above) (Δ ≈ 0)
+         → Shrinkage and early stopping provide built-in robustness
+       Lesson: tuning on limited subset can harm weak learners; well-regularized
+       ensembles exhibit diminishing returns from additional grid search
     
     6. Class Imbalance (SMOTE):
        - SMOTE helped balance the training data
