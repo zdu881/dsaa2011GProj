@@ -125,7 +125,7 @@ where $a(i)$ is its mean within-cluster distance and $b(i)$ is its smallest mean
 
 Table~\ref{tab:clustering} compares the best-performing cluster solutions.  MiniBatchKMeans achieves its highest silhouette at $k=3$ (0.182) with ARI 0.075 against the true labels, while Ward clustering peaks at $k=4$ (0.156 silhouette) with ARI 0.103.  ARI values are substantially lower than those achievable by supervised models, confirming that unsupervised clustering alone cannot recover the labeled cover-type structure.  The gap arises from two structural reasons: (i) the dataset mixes 10 continuous terrain variables with 44 binary indicators, so Euclidean distance — the optimization metric of K-Means and Ward — poorly captures similarity in the high-dimensional mixed-type space; (ii) clustering optimizes internal compactness (silhouette), whereas the supervised labels are defined by ecological criteria that are not aligned with variance-minimizing partitions.  Tree-based models, by contrast, use axis-aligned splits that naturally handle mixed feature types without relying on a global distance metric.
 
-To test whether the failure is attributable to the distance metric rather than the clustering criterion, we replace Euclidean distance with Gower distance, which combines range-normalized Manhattan distance for continuous variables with simple-matching dissimilarity for binary indicators.  Applying Ward linkage to the Gower distance matrix on the same 2,500-row stratified sample yields a best ARI of 0.215 at $k=7$, a meaningful improvement over the Euclidean-based Ward result (ARI~0.103 at $k=4$) but still an order of magnitude below supervised performance.  This confirms that the clustering failure is structural: optimizing internal compactness does not recover ecologically defined labels, regardless of the distance function used.
+To test whether the failure is attributable to the distance metric rather than the clustering criterion, we replace Euclidean with Gower distance (range-normalized Manhattan for continuous, matching dissimilarity for binary) on the same 2,500-row sample.  Ward + Gower yields a best ARI of 0.215 at $k=7$ — still far below supervised F1 — confirming that the bottleneck is the clustering criterion, not the distance function.
 
 \begin{table}[H]
   \centering
@@ -284,25 +284,7 @@ Feature-group ablation tests whether these rankings translate into joint predict
   \label{fig:ablation}
 \end{figure}
 
-Beyond subset selection, we investigated whether explicit nonlinear feature construction could close the performance gap.  Using the same five most important continuous features identified by permutation importance, we applied a second-degree polynomial expansion (5 $\to$ 20 features) and evaluated a controlled set of configurations in a fair comparison:
-
-\begin{table}[H]
-  \centering
-  \caption{Controlled comparison of polynomial feature expansion.  All models use the same train/test split (68,565 / 29,385) and are evaluated by macro-averaged F1 on the test set.}
-  \label{tab:poly_control}
-  \small
-  \begin{tabular}{lcc}
-    \toprule
-    Configuration & Feature Count & Macro-F1 \\
-    \midrule
-    Logistic Regression (same 5 features)        &  5 & 0.584 \\
-    LR + Degree-2 Polynomial                     & 20 (from 5) & 0.584 \\
-    Random Forest (same 5 features)              &  5 & 0.877 \\
-    Logistic Regression (all 54 features, L2)    & 54 & 0.660 \\
-    Random Forest (all 54 features, baseline)   & 54 & \textbf{0.908} \\
-    \bottomrule
-  \end{tabular}
-\end{table}
+Beyond subset selection, we investigated whether explicit nonlinear feature construction could close the performance gap.  Using the same five most important continuous features (elevation, vertical/horizontal hydrology distances, and road/fire-point distances), we applied a second-degree polynomial expansion (5 $\to$ 20 features) and compared a controlled set of configurations on the same train--test split: logistic regression on 5 features (0.584), LR with degree-2 polynomial features (0.584), random forest on the same 5 features (0.877), LR with $L_2$ regularization on all 54 features (0.660), and random forest on all 54 features (0.908).
 
 The controlled comparison shows a striking result.  First, polynomial expansion of the top 5 features provides \emph{no measurable improvement} to logistic regression (macro-F1 remains at 0.584), indicating that second-order polynomial terms on these variables do not capture classification-relevant nonlinear structure beyond what the original features already encode.  Second, a Random Forest trained on the \emph{same} 5 features achieves 0.877 macro-F1 -- only 0.031 behind the full 54-feature RF (0.908).  This demonstrates that the dominant performance gap is driven by the model class (nonlinear decision boundaries of tree ensembles), not by feature count.  Third, LR with L2 regularization on all 54 features (0.660) provides a modest gain over the 5-feature LR but still substantially underperforms even the full-feature Decision Tree (0.819).  We conclude that the classifier's capacity to model nonlinear interactions is the primary driver of performance on this dataset, with the 54-dimensional feature set contributing a smaller but complementary gain.
 
@@ -341,7 +323,7 @@ The grid-search degradation reveals that a discrete grid with 48 pre-defined con
 These results are consistent with the ``flat optimization surface'' phenomenon documented for well-regularized tree ensembles \cite{probst2019}, where multiple distinct hyperparameter configurations yield nearly equivalent generalization.  That Optuna recovered — but did not substantially surpass — the manually chosen defaults (depth 24, leaf 15) confirms that the \textit{a priori} parameter selection already generalizes well to the full data distribution.  For production deployment, Bayesian optimization with a larger tuning budget offers a principled safeguard against the grid-search brittleness observed here, but the marginal gain over carefully chosen defaults is likely to be modest for this dataset.
 
 \FloatBarrier
-\subsection{Calibration, Errors, and Terrain Robustness}
+\subsection{Calibration, Errors, Terrain Robustness, and Wilderness Subgroups}
 
 Good classification does not guarantee reliable probabilities. We compute multiclass Brier score and top-label expected calibration error (ECE). With confidence bins $B_m$, ECE is
 \begin{equation}
@@ -387,12 +369,7 @@ Performance also changes across terrain and classes. In Figure~\ref{fig:robustne
   \label{fig:robustness}
 \end{figure}
 
-\FloatBarrier
-\subsection{Wilderness-area Extension}
-
-The four wilderness indicators are not arbitrary one-hot variables: they identify geographic regions with different class composition. Figure~\ref{fig:wilderness}a shows that Rawah is dominated by Lodgepole Pine, Neota and Comanche Peak by Krummholz, and Cache la Poudre by Ponderosa Pine. Comanche Peak has the highest normalized cover entropy (0.911), meaning that its class mixture is comparatively diverse. This geographic heterogeneity helps explain why wilderness indicators add value when combined with topographic predictors.
-
-Random Forest subgroup results in Figure~\ref{fig:wilderness}b show that performance is not uniform across regions. Accuracy/macro-F1 are 0.888/0.906 in Rawah, 0.924/0.866 in Neota, 0.915/0.910 in Comanche Peak, and 0.913/0.716 in Cache la Poudre. Cache la Poudre has the most skewed class distribution and the lowest macro-F1, consistent with its different dominant class and overlapping lower-elevation terrain. The wilderness indicators therefore support an interpretable robustness check rather than serving only as inputs.
+The four wilderness indicators identify geographic regions with different class composition.  Figure~\ref{fig:wilderness}a shows that Rawah is dominated by Lodgepole Pine, Neota and Comanche Peak by Krummholz, and Cache la Poudre by Ponderosa Pine; Comanche Peak has the highest normalized cover entropy (0.911).  Random Forest subgroup results (Figure~\ref{fig:wilderness}b) give accuracy/macro-F1 of 0.888/0.906 (Rawah), 0.924/0.866 (Neota), 0.915/0.910 (Comanche Peak), and 0.913/0.716 (Cache la Poudre).  Cache la Poudre has the most skewed class distribution and lowest macro-F1, consistent with its different dominant class and overlapping lower-elevation terrain.
 
 \begin{figure}[H]
   \centering
