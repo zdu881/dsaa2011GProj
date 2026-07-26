@@ -1,0 +1,12 @@
+{
+  "name": "dsaa2011-ppt-fix",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Reproducible OOXML edits for the DSAA2011 presentation",
+  "dependencies": {
+    "@xmldom/xmldom": "^0.8.10",
+    "adm-zip": "^0.5.16",
+    "pptxgenjs": "^4.0.1",
+    "xpath": "^0.0.34"
+  }
+}

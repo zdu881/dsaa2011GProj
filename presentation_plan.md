@@ -96,11 +96,10 @@ across the board: accuracy 0.908, macro-F1 0.908, macro AUC 0.992. HistGradientB
 follows at 0.898 macro-F1 with the highest macro precision (0.896).  5-fold CV within the
 training set confirms the same ranking (RF: 0.902±0.001, HGB: 0.895±0.003).
 Bootstrap 95% CIs do not overlap (RF: [0.904, 0.911], HGB: [0.894, 0.902]),
-and a McNemar test gives χ²=41.5, p<0.001. However, the absolute difference
-is only 0.010 macro-F1 — Cohen's h≈0.04, far below the conventional threshold for
-a small effect (h=0.20). The test is statistically significant only because we have
-29,000 test samples; in practice, RF and HGB are interchangeable. Choose based on
-your deployment needs: calibration (HGB ECE=0.041) or training speed (RF ~2 sec).
+and a paired McNemar test gives $\chi^2=41.5$, $p<0.001$ — confirming that RF and HGB
+differ systematically in their per-sample error patterns. However, the macro-F1 gap is
+only 0.010, a practically negligible difference. Choose based on deployment needs:
+calibration (HGB ECE=0.041) or training speed (RF ~2 sec).
 
 ### Slide 9 — Open-Ended Exploration Overview (45 sec)
 
@@ -144,9 +143,9 @@ Brier score and Expected Calibration Error. Random Forest has the best per-class
 score at 0.024 (traditional multiclass Brier 0.171) but is systematically
 under-confident: its mean top-label confidence is 0.783 while observed accuracy is 0.908.
 HistGradientBoosting is best calibrated with ECE only 0.041. Platt (sigmoid) scaling
-reduces RF Brier from 0.024 to 0.021. A paired McNemar test gives χ²=41.5,
-p<0.001, but as we discussed — statistically detectable, practically marginal
-(ΔF1=0.010, h≈0.04). Performance also varies by elevation band: 0.863 accuracy in
+reduces RF Brier from 0.024 to 0.021. McNemar test ($\chi^2$=41.5, p<0.001) confirms
+systematic error-pattern differences, but the macro-F1 gap is only 0.010 — bootstrap
+CI shows it's stable but practically negligible. Performance also varies by elevation band: 0.863 accuracy in
 the most diverse mid-elevation band versus 0.958 at the highest. It's not a simple
 "higher is easier" story — the mixed mid-elevation zone is the hardest.
 
@@ -163,9 +162,10 @@ strong performance with reasonable computational cost.
 ### Slide 14 — Conclusions and Limitations (45 sec)
 
 **Speaker:** To summarize: Random Forest delivers 0.908 accuracy, 0.908 macro-F1,
-and 0.992 macro-AUC. McNemar χ²=41.5, p<0.001 — but the ΔF1 is only 0.010,
-a practically negligible gap (Cohen's h≈0.04). Supervised learning is essential — 
-clustering alone cannot recover the labels (best ARI≤0.124 with Gower distance, vs 
+and 0.992 macro-AUC. Bootstrap 95\% CIs confirm the F1 gap is stable but negligible
+($\Delta$=0.010). McNemar ($\chi^2$=41.5, p<0.001) shows systematic per-sample error-pattern
+differences between RF and HGB. Supervised learning is essential — 
+clustering alone cannot recover the labels (best ARI≤0.215 with Gower distance, vs 
 RF F1=0.908). Elevation is dominant, but RF on just 5 features reaches 0.877 F1 — 
 nonlinearity, not dimensionality, drives performance. Polynomial expansion gave zero 
 improvement for LR.
@@ -197,11 +197,12 @@ The supervised model optimizes for label separation directly, which explains the
 
 **Q2: Why Random Forest over Gradient Boosting?**
 A: RF achieves better macro-F1 (0.908 vs 0.898) and AUC (0.992 vs 0.991) on our
-test set. Bootstrap 95% CIs do not overlap, and a McNemar test gives χ²=41.5,
-p<0.001. However, the absolute gap is only 0.010 — Cohen's h≈0.04, far below
-"small effect" threshold. In practice, the two models are interchangeable. HGB has
-much better calibration (ECE 0.041 vs 0.125), while RF is faster to train (2 sec
-vs 160 sec). Choose based on deployment priority — calibration quality or speed.
+test set. Bootstrap 95% CIs do not overlap, confirming the F1 gap is stable, but
+the absolute difference is only 0.010 — practically negligible. McNemar (χ²=41.5,
+p<0.001) confirms the two models differ systematically in their per-sample correctness
+patterns, but this tests accuracy-level agreement, not the F1 metric directly.
+In practice, the models are interchangeable. HGB has better calibration (ECE 0.041
+vs 0.125), while RF is faster (2 sec vs 160 sec). Choose based on deployment priority.
 
 **Q3: How do you handle class imbalance?**
 A: Stratified sampling preserves proportions. Class-weighted training adjusts loss.
