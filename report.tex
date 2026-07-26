@@ -45,7 +45,7 @@ Forest cover is shaped by interacting topographic, hydrological, and ecological 
 
 Figure~\ref{fig:data_profile}a shows severe class imbalance. Lodgepole Pine and Spruce/Fir together account for 85.3\% of the data, whereas Cottonwood/Willow represents only 0.5\%. Accuracy alone could consequently conceal poor minority-class performance, so we emphasize macro-averaged precision, recall, F1, and one-vs-rest AUC. The standardized continuous-feature distributions in Figure~\ref{fig:data_profile}b also retain long tails and outliers, suggesting that linear decision boundaries may be restrictive even after scale differences are removed.
 
-This report is organized as follows. Section~2 presents the mandatory tasks, including data preprocessing, t-SNE visualization and clustering analysis, model training with baseline classifiers, and confusion matrix evaluation. Section~3 discusses open-ended exploration, covering feature engineering, model selection, calibration, robustness diagnostics, and computational optimization strategies. Section~4 concludes with a summary of key findings and insights.
+This report is organized as follows. Section~2 presents the mandatory tasks, including data preprocessing, t-SNE visualization and clustering analysis, model training with baseline classifiers, and confusion matrix evaluation. Section~3 discusses open-ended exploration, covering feature engineering, model selection, calibration, and robustness diagnostics. Section~4 concludes with a summary of key findings and insights.
 
 \begin{figure}[tbp]
   \centering
@@ -75,7 +75,7 @@ For logistic regression, t-SNE, K-Means, and Ward clustering, each continuous pr
 z=\frac{x-\mu}{\sigma},
 \label{eq:standardization}
 \end{equation}
-where $\mu$ and $\sigma$ are estimated exclusively from the sub-sample used for each specific analysis (t-SNE: 6,000; clustering: 2,500--6,000; supervised: 68,565 training), not from the full 581,012-observation dataset. For the supervised pipeline, the StandardScaler is fitted on the 68,565-row training split only and applied via \texttt{transform} to the held-out 29,385 test observations, following the strict train/test separation protocol. Binary wilderness and soil indicators remain in $\{0,1\}$. Tree models receive the same predictors without requiring scale normalization. Stratification is used whenever a sample or train-test split is drawn, preserving rare classes such as Cottonwood/Willow. Finally, continuous columns are stored as \texttt{float32} and indicators as \texttt{uint8}; the resulting dataframe requires about 47.1 MB rather than the 244 MB estimated for an all-\texttt{int64} representation. This reduction makes repeated analysis practical without altering the underlying values.
+where $\mu$ and $\sigma$ are estimated exclusively from the sub-sample used for each specific analysis (t-SNE: 6,000; clustering: 2,500--6,000; supervised: 68,565 training), not from the full 581,012-observation dataset. For the supervised pipeline, the StandardScaler is fitted on the 68,565-row training split only and applied via \texttt{transform} to the held-out 29,385 test observations, following the strict train/test separation protocol. Binary wilderness and soil indicators remain in $\{0,1\}$. Tree models receive the same predictors without requiring scale normalization. Stratification is used whenever a sample or train-test split is drawn, preserving rare classes such as Cottonwood/Willow. Finally, continuous columns are stored as \texttt{float32} and indicators as \texttt{uint8}; the resulting dataframe requires about 47.1 MB rather than the 244 MB estimated for an all-\texttt{int64} representation. The 44 binary features can additionally be stored in sparse CSR format for further memory savings, while HistGradientBoosting's histogram-based binning is inherently memory-efficient and requires no sparse input. The entire notebook executes within course-project laptop resources.
 
 \subsection{t-SNE Visualization}
 
@@ -411,10 +411,6 @@ Random Forest subgroup results in Figure~\ref{fig:wilderness}b show that perform
 \end{figure}
 
 \FloatBarrier
-\subsection{Computational and Reproducibility Considerations}
-
-Memory was reduced from an estimated 244~MB (all-\texttt{int64}) to 47~MB through dtype downcasting (\texttt{float32} for continuous, \texttt{uint8} for binary indicators).  The 40 binary soil-type features can additionally be stored in sparse CSR format, which reduces their memory footprint by roughly an order of magnitude relative to dense storage.  HistGradientBoosting's histogram-based binning algorithm is inherently memory-efficient for dense numeric features and does not require explicit sparse input.  Incremental learning (\texttt{partial\_fit}) would be the appropriate strategy for training on the full 581k dataset within memory constraints.  The full notebook executes within approximately 47~MB of memory on a standard laptop, making repeated analysis practical within course-project resources.
-
 \section{Conclusion}
 
 This project demonstrates that the Covertype labels are predictable even though they do not correspond to simple natural clusters. t-SNE reveals local class-enriched regions, but MiniBatchKMeans and Ward clustering prefer a small number of terrain-driven groups (ARI = 0.075 and 0.103, respectively; switching to Gower distance raises Ward ARI to 0.215 but remains far below supervised F1) rather than the seven ecological labels. Supervised nonlinear models are much more effective. Logistic regression underfits and a single decision tree overfits mildly; Random Forest produces the best held-out performance with 0.908 accuracy, 0.908 macro-F1, and 0.992 macro AUC, while HistGradientBoosting supplies better calibrated probabilities.
