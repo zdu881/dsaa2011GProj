@@ -13,8 +13,8 @@
 | Test Accuracy | 0.908 |
 | Macro F1 | 0.908 (95% CI: [0.904, 0.911]) |
 | Macro OVR AUC | 0.992 |
-| Clustering ARI vs labels | ~0 (clusters ≠ cover types) |
-| Dominant feature | Elevation (RF impurity = 0.237) |
+| Clustering ARI vs labels | ≤0.12 (Euclidean or Gower — clusters ≠ cover types) |
+| Dominant feature | Elevation (RF impurity = 0.243) |
 
 ---
 
@@ -67,13 +67,15 @@ models and contextual features beyond a single 2D projection.
 **Speaker:** We test MiniBatchKMeans and Agglomerative Ward clustering.
 MiniBatchKMeans peaks at K=3 (silhouette 0.182), Ward at K=4 (silhouette 0.156).
 The crucial number: adjusted Rand index against the true labels is only 0.075 (K-Means)
-and 0.061 (Ward) — far below any supervised model. Why such a large gap? Two structural
+and 0.103 (Ward) — far below any supervised model. Why such a large gap? Two structural
 reasons: (i) the dataset mixes 10 continuous terrain variables with 44 binary indicators,
 so Euclidean distance — the metric K-Means and Ward optimize — poorly captures
 similarity in high-dimensional mixed-type space; (ii) clustering minimizes internal
 variance, while the labels are defined by ecological criteria that don't align with
-variance-minimizing partitions. Tree-based models, by contrast, use axis-aligned splits
-that naturally handle mixed feature types without relying on a global distance metric.
+variance-minimizing partitions. To eliminate the distance as a confound, we also tested
+Gower distance + Ward on the same subset. The result: ARI only 0.124 — still useless.
+The bottleneck is not the distance metric; it's the clustering objective itself. Tree-based
+models, by contrast, use axis-aligned splits that naturally handle mixed feature types.
 (Cluster visualizations are shown in both t-SNE and PCA space; t-SNE distorts global
 distances, so ARI in original 54-D space is the rigorous evidence.) So for prediction,
 we must use supervised methods.
@@ -94,7 +96,11 @@ across the board: accuracy 0.908, macro-F1 0.908, macro AUC 0.992. HistGradientB
 follows at 0.898 macro-F1 with the highest macro precision (0.896).  5-fold CV within the
 training set confirms the same ranking (RF: 0.902±0.001, HGB: 0.895±0.003).
 Bootstrap 95% CIs do not overlap (RF: [0.904, 0.911], HGB: [0.894, 0.902]),
-and a McNemar test confirms RF is significantly better (χ²=41.5, p<0.001).
+and a McNemar test gives χ²=41.5, p<0.001. However, the absolute difference
+is only 0.010 macro-F1 — Cohen's h≈0.04, far below the conventional threshold for
+a small effect (h=0.20). The test is statistically significant only because we have
+29,000 test samples; in practice, RF and HGB are interchangeable. Choose based on
+your deployment needs: calibration (HGB ECE=0.041) or training speed (RF ~2 sec).
 
 ### Slide 9 — Open-Ended Exploration Overview (45 sec)
 
@@ -107,9 +113,9 @@ while soil and wilderness context provide complementary signal.
 ### Slide 10 — Feature Importance (75 sec)
 
 **Speaker:** Two complementary methods agree. Random Forest impurity importance puts
-Elevation first at 0.237, followed by road distance, fire-point distance, and hydrology
+Elevation first at 0.243, followed by road distance, fire-point distance, and hydrology
 distance. Permutation importance independently confirms this: shuffling Elevation drops
-macro-F1 by 0.358 — the largest single-feature impact. The top four features are all
+macro-F1 by 0.371 — the largest single-feature impact. The top four features are all
 terrain-related, but wilderness areas and soil types also appear in the top 15, showing
 the model uses contextual information beyond geometry alone.
 
@@ -138,9 +144,11 @@ Brier score and Expected Calibration Error. Random Forest has the best per-class
 score at 0.024 (traditional multiclass Brier 0.171) but is systematically
 under-confident: its mean top-label confidence is 0.783 while observed accuracy is 0.908.
 HistGradientBoosting is best calibrated with ECE only 0.041. Platt (sigmoid) scaling
-reduces RF Brier from 0.024 to 0.021. A paired McNemar test confirms RF is significantly
-better than HGB (χ²=41.5, p<0.001). Performance also improves with elevation: 0.863
-accuracy in the most diverse band versus 0.958 in the highest.
+reduces RF Brier from 0.024 to 0.021. A paired McNemar test gives χ²=41.5,
+p<0.001, but as we discussed — statistically detectable, practically marginal
+(ΔF1=0.010, h≈0.04). Performance also varies by elevation band: 0.863 accuracy in
+the most diverse mid-elevation band versus 0.958 at the highest. It's not a simple
+"higher is easier" story — the mixed mid-elevation zone is the hardest.
 
 ### Slide 13 — Advanced Model Comparison (60 sec)
 
@@ -155,11 +163,12 @@ strong performance with reasonable computational cost.
 ### Slide 14 — Conclusions and Limitations (45 sec)
 
 **Speaker:** To summarize: Random Forest delivers 0.908 accuracy, 0.908 macro-F1,
-and 0.992 macro-AUC. McNemar test confirms RF is significantly better than HGB
-(χ²=41.5, p<0.001). Supervised learning is essential — clustering alone cannot
-recover the labels (best ARI=0.075, vs RF=0.908). Elevation is dominant, but RF on
-just 5 features reaches 0.877 F1 — nonlinearity, not dimensionality, drives performance.
-Polynomial expansion gave zero improvement for LR.
+and 0.992 macro-AUC. McNemar χ²=41.5, p<0.001 — but the ΔF1 is only 0.010,
+a practically negligible gap (Cohen's h≈0.04). Supervised learning is essential — 
+clustering alone cannot recover the labels (best ARI≤0.124 with Gower distance, vs 
+RF F1=0.908). Elevation is dominant, but RF on just 5 features reaches 0.877 F1 — 
+nonlinearity, not dimensionality, drives performance. Polynomial expansion gave zero 
+improvement for LR.
 
 Caveats: modeling sample covers ~17% of full data (capped by minority class size).
 Full-data gradient boosting in the literature reaches 0.95-0.96 accuracy — a gap
@@ -175,20 +184,24 @@ training and Bayesian search for the ensemble models.
 
 ## Anticipated Q&A
 
-**Q1: Why is clustering ARI so low (0.075) compared to RF (0.908)?**
+**Q1: Why is clustering ARI so low (≤0.12) compared to RF (0.908)?**
 A: Two structural reasons. First, the dataset mixes 10 continuous + 44 binary features:
-Euclidean distance — the metric optimized by K-Means and Ward — poorly captures
-similarity in mixed-type space, while tree-based models use axis-aligned splits that
-handle binary indicators natively. Second, clustering minimizes internal variance (the
-silhouette criterion), whereas the ecological labels are defined by forest management
-categories that don't align with variance-minimizing partitions. The supervised model
-optimizes for label separation directly, which explains the massive gap.
+Euclidean distance poorly captures similarity in mixed-type space, while tree-based
+models use axis-aligned splits that handle binary indicators natively. We verified this
+by testing Gower distance (designed for mixed data) with Ward linkage — ARI only
+improved to 0.124, still an order of magnitude below RF. This proves the bottleneck
+is the clustering objective itself, not the distance metric. Second, clustering
+minimizes internal variance (silhouette), whereas ecological labels are defined by
+forest management categories that don't align with variance-minimizing partitions.
+The supervised model optimizes for label separation directly, which explains the huge gap.
 
 **Q2: Why Random Forest over Gradient Boosting?**
 A: RF achieves better macro-F1 (0.908 vs 0.898) and AUC (0.992 vs 0.991) on our
-test set. Bootstrap 95% CIs do not overlap, and a McNemar test confirms RF is
-significantly better (χ²=41.5, p<0.001). Boosting has better calibration with
-lower ECE (0.041 vs 0.125).
+test set. Bootstrap 95% CIs do not overlap, and a McNemar test gives χ²=41.5,
+p<0.001. However, the absolute gap is only 0.010 — Cohen's h≈0.04, far below
+"small effect" threshold. In practice, the two models are interchangeable. HGB has
+much better calibration (ECE 0.041 vs 0.125), while RF is faster to train (2 sec
+vs 160 sec). Choose based on deployment priority — calibration quality or speed.
 
 **Q3: How do you handle class imbalance?**
 A: Stratified sampling preserves proportions. Class-weighted training adjusts loss.
